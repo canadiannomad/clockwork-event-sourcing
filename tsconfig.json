@@ -1,0 +1,27 @@
+{
+  "compilerOptions": {
+    "allowSyntheticDefaultImports": true,
+    "experimentalDecorators": true,
+    "incremental": true,
+    "outDir": "./built",
+    "allowJs": true,
+    "lib": ["es2017"],
+    "module": "commonjs",
+    "pretty": true,
+    "sourceMap": true,
+    "inlineSourceMap": false,
+    "inlineSources": false,
+    "noImplicitAny": false,
+    "strictNullChecks": false,
+    "strictFunctionTypes": true,
+    "strictBindCallApply": true,
+    "strictPropertyInitialization": false,
+    "noImplicitThis": true,
+    "target": "es2019",
+    "types": ["node"]
+  },
+  "include": [
+    "./src/init.ts",
+    "./src/test.ts"
+  ]
+}

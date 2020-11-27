@@ -1,0 +1,42 @@
+{
+  "name": "minevtsrc",
+  "version": "1.0.0",
+  "description": "Minimal NodeJS(TypeScript) + Redis Event Sourcing Framework",
+  "main": "built/init.js",
+  "author": "Kyle Jones <kyle@canadiannomad.com>",
+  "homepage": "https://github.com/canadiannomad/minevtsrc/issues",
+  "url" : "https://github.com/canadiannomad/minevtsrc",
+  "email" : "kyle@canadiannomad.com",
+  "license": "LicenseRef-LICENSE",
+  "private": false,
+  "scripts": {
+    "start": "./bin/build.sh && ./bin/start.sh",
+    "test": "./bin/test.sh",
+    "lint": "./bin/lint.sh",
+    "build": "./bin/build.sh",
+    "pack": "./bin/pack.sh"
+  },
+  "dependencies": {
+    "encoding": "^0.1.13",
+    "ioredis": "^4.18.0",
+    "promise-retry": "^1.1.1",
+    "source-map-support": "^0.5.19",
+    "uuid": "^8.3.0"
+  },
+  "devDependencies": {
+    "@types/node": "^12.12.54",
+    "@types/uuid": "^8.3.0",
+    "@typescript-eslint/eslint-plugin": "^3.9.0",
+    "@typescript-eslint/parser": "^3.9.0",
+    "eslint": "^6.8.0",
+    "eslint-config-prettier": "^6.11.0",
+    "eslint-plugin-import": "^2.22.0",
+    "eslint-plugin-prettier": "^3.1.4",
+    "esm": "^3.2.25",
+    "prettier": "^2.1.1",
+    "source-map-loader": "^0.2.4",
+    "typescript": "^3.9.7",
+    "webpack": "^4.44.1",
+    "webpack-cli": "^3.3.12"
+  }
+}
