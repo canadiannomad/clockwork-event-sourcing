@@ -160,7 +160,7 @@ Distributed under the LGPL 3.0 License. See `LICENSE` for more information.
 <!-- CONTACT -->
 ## Contact
 
-Your Name - [@minevtsrc](https://twitter.com/your_username) - minevtsrc@canadiannomad.com
+Your Name - [@minevtsrc](https://twitter.com/your_username) - minevtsrc@.com
 
 Project Link: [https://github.com/canadiannomad/minevtsrc](https://github.com/canadiannomad/minevtsrc)
 
