@@ -1,8 +1,3 @@
-<!--
-*** With many thanks to https://github.com/canadiannomad/minevtsrc
-*** for the readme template.
--->
-
 <!-- PROJECT SHIELDS -->
 <!--
 *** Markdown "reference style" links used for readability.
