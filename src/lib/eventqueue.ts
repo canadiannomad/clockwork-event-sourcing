@@ -12,10 +12,16 @@ let allowedEvents = {};
 interface objToKVArrayCB {
   (arg: any): any;
 }
-interface kbArrayToObjCB {
+interface kvArrayToObjCB {
   (arg: any, key?: string): any;
 }
 
+/**
+ * This function recieves an object and transform it into a key value object.
+ * @param {Record<string, any>}  obj - The object to transform.
+ * @param {objToKVArrayCB} callback - The callback function.
+ * @return {Array<any>} The key value array.
+ */
 const objectToKVArray = (obj: Record<string, any>, callback: objToKVArrayCB | null = null): Array<any> => {
   if (!callback) {
     callback = (a) => a;
@@ -30,7 +36,14 @@ const objectToKVArray = (obj: Record<string, any>, callback: objToKVArrayCB | nu
   return kvObj;
 };
 
-const kvArrayToObject = (kvArray: Array<any>, callback: kbArrayToObjCB | null = null): Record<string, any> => {
+
+/**
+ * This function receives a key value object and transforms it into an object.
+ * @param {Array<any>}  kvArray - The key value to transform.
+ * @param {kvArrayToObjCB} callback - The callback function.
+ * @return {Record<string, any>} The transformed object.
+ */
+const kvArrayToObject = (kvArray: Array<any>, callback: kvArrayToObjCB | null = null): Record<string, any> => {
   if (kvArray.length % 2 != 0) {
     throw new Error('Array must have an even number of elements.');
   }
@@ -50,13 +63,17 @@ const kvArrayToObject = (kvArray: Array<any>, callback: kbArrayToObjCB | null = 
   return newObj;
 };
 
+/**
+ * This a list of events and return the allowed functions
+ * @param {any}  events - The events array.
+ * @return {any} The transformed object
+ */
 const getAllowedEvents = (events) => {
   let eventList = {};
-
   for (const eventName in events) {
     if (events.hasOwnProperty(eventName)) {
       log.info(`Adding Event ${eventName}`);
-      log.info('Property names', Object.keys(events[eventName]));
+      log.info(`Property names`, Object.keys(events[eventName]).toString());
       Object.keys(events[eventName]).forEach((fileName) => {
         if (events[eventName][fileName] && events[eventName][fileName].allowedFunctions) {
           const funcs = events[eventName][fileName].allowedFunctions();
@@ -69,7 +86,7 @@ const getAllowedEvents = (events) => {
       });
     }
   }
-  log.info('Allowed Events:', Object.keys(eventList));
+  log.info('Allowed Events:', Object.keys(eventList).toString());
   return eventList;
 };
 

@@ -7,8 +7,8 @@
  * State Changes: Updates Async Request with Output
  * Next: None
  */
-import { Event, PayloadHTTP, Request } from '../../lib/types';
-import redis from '../../lib/redis';
+import { Event, PayloadHTTP, Request } from '../../../src/lib/types';
+import redis from '../../../src/lib/redis';
 import 'source-map-support/register';
 
 let exportThis = {};
