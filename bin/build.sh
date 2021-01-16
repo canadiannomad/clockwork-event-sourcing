@@ -25,6 +25,6 @@ do
     echo "export * as ${curfilebase} from './${curfilebase}';" >> index.ts
   done
 done
-#export NODE_OPTIONS="--max-old-space-size=$(${DIR}/bin/free.sh | awk '{print int($1*0.9)}')"
-#unset NODE_OPTIONS
+export NODE_OPTIONS="--max-old-space-size=$(${DIR}/bin/free.sh | awk '{print int($1*0.9)}')"
+unset NODE_OPTIONS
 time tsc && echo "Build Complete"
