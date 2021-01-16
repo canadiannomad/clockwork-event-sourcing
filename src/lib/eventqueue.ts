@@ -64,7 +64,7 @@ const kvArrayToObject = (kvArray: Array<any>, callback: kvArrayToObjCB | null = 
 };
 
 /**
- * This a list of events and return the allowed functions
+ * This function gets a list of events and return the allowed functions
  * @param {any}  events - The events array.
  * @return {any} The transformed object
  */
@@ -90,6 +90,12 @@ const getAllowedEvents = (events) => {
   return eventList;
 };
 
+/**
+ * This function initializes the event queues.
+ * Each second will be reading events from the stream group if any.
+ * Will be limited to get up to five events each time.
+ * @param {any}  events - The events array.
+ */
 const initializeQueues = async (evts): Promise<void> => {
   allowedEvents = getAllowedEvents(evts);
   const allowedEventsNames = Object.keys(allowedEvents);
@@ -178,12 +184,25 @@ const initializeQueues = async (evts): Promise<void> => {
   }
 };
 
+/**
+ * This function sends event data to the events queue.
+ * @param {string}  outputPayloadType - The output payload type.
+ * @param {Event<any>}  event - The event.
+ * @return {Promise<any>} A redis promise.
+ */
 const send = async (outputPayloadType: string, event: Event<any>): Promise<string> => {
   const kvObj: string[] = objectToKVArray(event, JSON.stringify);
   log.info(`Sending to queue minevtsrc-stream-${outputPayloadType}`);
   return await redis.xadd(`minevtsrc-stream-${outputPayloadType}`, '*', ...kvObj);
 };
 
+
+/**
+ * This function process an incoming event.
+ * Will increase the event hops each time the event is processed.
+ * @param {string}  funcName - The function name.
+ * @param {Event<any>}  evt - The incoming event.
+ */
 const processEvent = async (funcName: string, evt: Event<any>) => {
   try {
     log.info(`Received message on queue '${funcName}'`);
