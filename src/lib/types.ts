@@ -40,3 +40,7 @@ export interface Event<T extends Payload> {
   rawPayload: any;
   payload: T;
 }
+
+export interface Request {
+  output: any;
+}

@@ -5,6 +5,9 @@ import { Event, EventDirection, PayloadHTTP, PayloadHTTPMethod } from './lib/typ
 import eventqueue from './lib/eventqueue';
 import logger from './lib/logger';
 
+
+import * as events from '../example/events';
+
 const log = logger('Integration Tests');
 
 process.on('warning', (e) => log.warn(e.stack));
@@ -19,7 +22,7 @@ process.on('unhandledRejection', (err) => {
 
 const init = async () => {
   globalThis.testMode = true;
-  await eventqueue.initializeQueues();
+  await eventqueue.initializeQueues(events);
   log.info('Done initiate queues');
   await testHTTPRequest();
 };

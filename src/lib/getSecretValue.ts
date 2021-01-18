@@ -8,6 +8,11 @@ const secMgr = new AWS.SecretsManager({
   region: 'us-east-1',
 });
 
+/**
+ * This function gets a secret value from AWS Secrets Manager
+ * @param {string}  key - The secret key.
+ * @return {Promise<any>} Promise that returns the secret value.
+ */
 const getSecretValue = async (key: string): Promise<any> => {
   log.info('Getting Secret:', { key });
   if (globalThis.testMode) {
