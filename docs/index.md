@@ -43,7 +43,7 @@
 	<li><a href="#extending">Extensions or Middleware?</a></li>
 	<li><a href="#testing">Tests & Testing</a></li>
 	<li><a href="#troubleshooting">Troubleshooting</a></li>
-    <li><a href="#lib-ref">Library Reference</a></li>
+    <li><a href="#library-reference">Library Reference</a></li>
     <li><a href="#roadmap">Roadmap</a></li>
 	<li><a href="#contributing">Contributing</a></li>
 	<li><a href="../code-of-conduct.md">Code of Conduct</a></li>
@@ -53,4 +53,13 @@
 
 ## Event-driven Architecture
 
-<img src="docs/images/generic_event_diagram.jpg" />
+<img src="/docs/images/generic_event_diagram.jpg" />
+
+If you are completely unfamiliar with event-driven architectures, start by reading the [Wikipedia article](https://en.wikipedia.org/wiki/Event-driven_architecture)
+
+## Library Reference
+
+| Route  | Description | Options | Triggers |
+| --- | --- | --- | --- |
+| `/password/reset`  | For resetting a user's password | `{ email: test@test.com }` | `/send_message` `/notify` |
+| `/password/save`  | For saving a password regardless of how initiated  | `{ userId: '[uuid]', newPass: 'sdg##$5DSFgsdyer654^$^u8^&(^79rshSDH)' }` | `/notify` `/update_auth_tokens` |
