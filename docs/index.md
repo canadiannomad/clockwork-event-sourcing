@@ -24,7 +24,7 @@
   <summary>Table of Contents</summary>
   <ul style="list-style-type:none;">
     <li>
-      <a href="#general-architecture">Event-Driven Architecture</a>
+      <a href="#event-driven-architecture">Event-Driven Architecture</a>
       <ul style="list-style-type:none">
 		  <li><a href="#design-goals">Design Goals</a></li>
 		  <li><a href="#arch-comparisons">Comparisons to other frameworks</a></li>
@@ -50,3 +50,7 @@
 	<li><a href="#license">License</a></li>
   </ul>
 </details>
+
+## Event-driven Architecture
+
+![Event Queue General Diagram](docs/images/generic_event_diagram.png)
