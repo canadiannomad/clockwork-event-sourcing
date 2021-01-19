@@ -53,4 +53,4 @@
 
 ## Event-driven Architecture
 
-![Event Queue General Diagram](docs/images/generic_event_diagram.png)
+<img src="docs/images/generic_event_diagram.jpg" />
