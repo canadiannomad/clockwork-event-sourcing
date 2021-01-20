@@ -27,8 +27,7 @@
       <a href="#event-driven-architecture">Event-Driven Architecture</a>
       <ul style="list-style-type:none">
 		  <li><a href="#design-goals">Design Goals</a></li>
-		  <li><a href="#arch-comparisons">Comparisons to other frameworks</a></li>
-		  <li><a href="#call-stack">Anatomy of a Request</a></li>
+		  <li><a href="#comparisons">Comparisons to other frameworks</a></li>
       </ul>
     </li>
     <li>
@@ -36,7 +35,7 @@
       <ul style="list-style-type:none">
         <li><a href="#prerequisites">Prerequisites</a></li>
 		<li><a href="#installation">Installation</a></li>
-		<li><a href="#contact">Configuration Options</a></li>
+		<li><a href="#configuration">Configuration Options</a></li>
 		<li><a href="#first-app">Creating Your First Application</a></li>
       </ul>
     </li>
@@ -56,6 +55,32 @@
 <img src="/docs/images/generic_event_diagram.jpg" />
 
 If you are completely unfamiliar with event-driven architectures, start by reading the [Wikipedia article](https://en.wikipedia.org/wiki/Event-driven_architecture)
+
+## Configuration
+
+| Option | Values | Notes |
+| --- | --- | --- |
+| _**Compiler Options**_ |
+| `allowSyntheticDefaultImports` | `true`/`false` | If true, synthetic defaults are allowed |
+| `experimentalDecorators` | `true`/`false` | If true, use experimental decorators |
+| `incremental` | `true`/`false` | ? |
+| `outDir` | `./built` | ? |
+| `allowJs` | `true`/`false` | ? |
+| `lib` | `["es2017"]` | ? |
+| `module` | `commonjs` | ? |
+| `pretty` | `true`/`false` | ? |
+| `sourceMap` | `true`/`false` | ? |
+| `inlineSourceMap` | `true`/`false` | ? |
+| `inlineSources` | `true`/`false` | ? |
+| `noImplicitAny` | `true`/`false` | ? |
+| `strictNullChecks` | `true`/`false` | ? |
+| `strictFunctionTypes` | `true`/`false` | ? |
+| `strictBindCallApply` | `true`/`false` | ? |
+| `strictPropertyInitialization` | `true`/`false` | ? |
+| `noImplicitThis` | `true`/`false` | ? |
+| `target` | `es2019` | ? |
+| `types` | `["node"]` | ? |
+
 
 ## Library Reference
 
