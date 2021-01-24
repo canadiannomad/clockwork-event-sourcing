@@ -9,6 +9,7 @@
  */
 import { Event, PayloadHTTP, Request } from '../../../src/lib/types';
 import redis from '../../../src/lib/redis';
+import * as s3 from '../../../src/lib/s3';
 import 'source-map-support/register';
 
 /**
@@ -27,7 +28,8 @@ const handler = async (evt: Event<PayloadHTTP>): Promise<any> => {
     return;
   }
   const requestId = input.requestId;
-  const request = JSON.parse(await redis.get(`minevtsrc-async-${requestId}`)) as Request;
+  let request = JSON.parse(await redis.get(`minevtsrc-async-${requestId}`)) as Request;
+  
   request.output = {
     body: 'Hello World',
     headers: {
@@ -36,6 +38,8 @@ const handler = async (evt: Event<PayloadHTTP>): Promise<any> => {
     statusCode: 200,
   };
   await redis.set(`minevtsrc-async-${requestId}`, JSON.stringify(request), 'EX', 20);
+  //save the file on s3 ?
+
 
   return Promise.resolve();
 };

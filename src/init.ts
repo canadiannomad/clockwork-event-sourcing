@@ -19,6 +19,7 @@ process.on('unhandledRejection', (err) => {
 /* Queue initializer */
 const init = async () => {
   //Initializes the queue and loads events from example/events folder
+  globalThis.s3Bucket = ""; // where to set this?
   await eventqueue.initializeQueues(events);
 };
 
