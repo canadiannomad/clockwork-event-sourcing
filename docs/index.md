@@ -58,6 +58,15 @@ If you are completely unfamiliar with event-driven architectures, start by readi
 
 <img src="/docs/images/call_flow.png" />
 
+## Prerequisites
+
+## Installation
+
+#### Minimum Requirements
+
+* Redis >= 5.0 for the [streams](https://redis.io/topics/streams-intro)
+* NodeJS >= 14.0
+
 ## Configure the Event Queue
 
 ## Roadmap
