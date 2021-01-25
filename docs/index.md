@@ -26,7 +26,7 @@
     <li>
       <a href="#event-driven-architecture">Event-Driven Architecture</a>
       <ul style="list-style-type:none">
-		  <li><a href="#design-goals">Design Goals</a></li>
+		  <li><a href="#call-flow">Call Flow</a></li>
 		  <li><a href="#comparisons">Comparisons to other frameworks</a></li>
       </ul>
     </li>
@@ -35,14 +35,12 @@
       <ul style="list-style-type:none">
         <li><a href="#prerequisites">Prerequisites</a></li>
 		<li><a href="#installation">Installation</a></li>
-		<li><a href="#configuration">Configuration Options</a></li>
+		<li><a href="#configure-the-event-queue">Configuring the Event Queue</a></li>
 		<li><a href="#hello-world">Hello, World!</a></li>
       </ul>
     </li>
-	<li><a href="#extensions">Extensions or Middleware?</a></li>
 	<li><a href="#testing">Tests & Testing</a></li>
 	<li><a href="#troubleshooting">Troubleshooting</a></li>
-    <li><a href="#library-reference">Library Reference</a></li>
     <li><a href="#roadmap">Roadmap</a></li>
 	<li><a href="#contributing">Contributing</a></li>
 	<li><a href="../code-of-conduct.md">Code of Conduct</a></li>
@@ -54,40 +52,19 @@
 
 <img src="/docs/images/generic_event_diagram.jpg" />
 
-If you are completely unfamiliar with event-driven architectures, start by reading the [Wikipedia article](https://en.wikipedia.org/wiki/Event-driven_architecture)
+If you are completely unfamiliar with event-driven architectures, start by reading the [Wikipedia article](https://en.wikipedia.org/wiki/Event-driven_architecture).
 
-## Configuration
+### Call Flow
 
-| Option | Values | Notes |
-| --- | --- | --- |
-| _**Compiler Options**_ |
-| `allowSyntheticDefaultImports` | `true`/`false` | If true, synthetic defaults are allowed |
-| `experimentalDecorators` | `true`/`false` | If true, use experimental decorators |
-| `incremental` | `true`/`false` | ? |
-| `outDir` | `./built` | ? |
-| `allowJs` | `true`/`false` | ? |
-| `lib` | `["es2017"]` | ? |
-| `module` | `commonjs` | ? |
-| `pretty` | `true`/`false` | ? |
-| `sourceMap` | `true`/`false` | ? |
-| `inlineSourceMap` | `true`/`false` | ? |
-| `inlineSources` | `true`/`false` | ? |
-| `noImplicitAny` | `true`/`false` | ? |
-| `strictNullChecks` | `true`/`false` | ? |
-| `strictFunctionTypes` | `true`/`false` | ? |
-| `strictBindCallApply` | `true`/`false` | ? |
-| `strictPropertyInitialization` | `true`/`false` | ? |
-| `noImplicitThis` | `true`/`false` | ? |
-| `target` | `es2019` | ? |
-| `types` | `["node"]` | ? |
+<img src="/docs/images/call_flow.png" />
 
+## Configure the Event Queue
 
-## Library Reference
+## Roadmap
 
-| Route  | Description | Options | Triggers |
-| --- | --- | --- | --- |
-| `/password/reset`  | For resetting a user's password | `{ email: test@test.com }` | `/send_message` `/notify` |
-| `/password/save`  | For saving a password regardless of how initiated  | `{ userId: '[uuid]', newPass: 'sdg##$5DSFgsdyer654^$^u8^&(^79rshSDH)' }` | `/notify` `/update_auth_tokens` |
+1. Extensibility
+2. Storing events in something other than S3
+3. Option for data stores other than Redis
 
 ## Contributing
 
@@ -97,19 +74,20 @@ If you are looking to help to with a code contribution our project uses **[inser
 ### How do I make a contribution?
 Never made an open source contribution before? Wondering how contributions work in the in our project? Here's a quick rundown!
 
-Find an issue that you are interested in addressing or a feature that you would like to add.
-Fork the repository associated with the issue to your local GitHub organization. This means that you will have a copy of the repository under your-GitHub-username/repository-name.
-Clone the repository to your local machine using `git clone https://github.com/canadiannomad/minevtsrc.git`.
-Create a new branch for your fix using git checkout -b branch-name-here.
-Make the appropriate changes for the issue you are trying to address or the feature that you want to add.
-Use `git add insert-paths-of-changed-files-here` to add the file contents of the changed files to the "snapshot" git uses to manage the state of the project, also known as the index.
-Use `git commit -m "Insert a short message of the changes made here"` to store the contents of the index with a descriptive message.
-Push the changes to the remote repository using `git push origin branch-name-here`.
-Submit a pull request to the upstream repository.
-Title the pull request with a short description of the changes made and the issue or bug number associated with your change. For example, you can title an issue such as "Added more log output to resolve #4352".
-In the description of the pull request, explain the changes that you made, any issues you think exist with the pull request you made, and any questions you have for the maintainer. It's OK if your pull request is not perfect (no pull request is), the reviewer will be able to help you fix any problems and improve it!
-Wait for the pull request to be reviewed by a maintainer.
-Make changes to the pull request if the reviewing maintainer recommends them.
-Celebrate your success after your pull request is merged!
-Where can I go for help?
+1. Find an issue that you are interested in addressing or a feature that you would like to add.
+2. Fork the repository associated with the issue to your local GitHub organization. This means that you will have a copy of the repository under your-GitHub-username/repository-name.
+3. Clone the repository to your local machine using `git clone https://github.com/canadiannomad/minevtsrc.git`.
+4. Create a new branch for your fix using git checkout -b branch-name-here.
+5. Make the appropriate changes for the issue you are trying to address or the feature that you want to add.
+6. Use `git add insert-paths-of-changed-files-here` to add the file contents of the changed files to the "snapshot" git uses to manage the state of the project, also known as the index.
+7. Use `git commit -m "Insert a short message of the changes made here"` to store the contents of the index with a descriptive message.
+8. Push the changes to the remote repository using `git push origin branch-name-here`.
+9. Submit a pull request to the upstream repository.
+10. Title the pull request with a short description of the changes made and the issue or bug number associated with your change. For example, you can title an issue such as "Added more log output to resolve #4352".
+11. In the description of the pull request, explain the changes that you made, any issues you think exist with the pull request you made, and any questions you have for the  maintainer. It's OK if your pull request is not perfect (no pull request is), the reviewer will be able to help you fix any problems and improve it!
+12. Wait for the pull request to be reviewed by a maintainer.
+13. Make changes to the pull request if the reviewing maintainer recommends them.
+14. Celebrate your success after your pull request is merged!
+
+### Where can I go for help?
 If you need help, you can ask questions on our mailing list, IRC chat, or **[list any other communication platforms that your project uses]**.
