@@ -1,10 +1,11 @@
 import './types';
+import { S3 } from 'aws-sdk/clients/all'
 import { PutObjectRequest } from 'aws-sdk/clients/s3';
 import logger from './logger';
 
 const log = logger('S3');
 const s3 = new S3();
-const bucket = globalThis.s3Bucket;
+const bucket = "mapreducelambda";
 
 /**
  * This function saves a text file into a S3 bucket.
@@ -12,19 +13,19 @@ const bucket = globalThis.s3Bucket;
  * @param {string}  content - The file content.
  * @return {Promise<any>} Promise that returns the S3 response.
  */
-const saveTextFile = async (name: string, content: string): Promise<any> => {
-  const object: PutObjectRequest = {
+const saveJsonFile = async (name: string, content: string): Promise<any> => {
+  const putObject: PutObjectRequest = {
     Bucket: bucket,
     Body: JSON.stringify(content),
-    Key: name,
+    Key: `${name}.json`,
   };
-
+  log.info(`Saving file ${name}`, {putObject});
   try {
-    const retVal = await s3.putObject(object).promise();
+    await s3.putObject(putObject).promise();
     log.info('Saved file:', { name });
-    return JSON.parse(retVal as any);
   } catch (e) {
     log.info('Failed to save the file:', { name, e });
+    process.exit(1);
     return e;
   }
 };
@@ -34,7 +35,7 @@ const saveTextFile = async (name: string, content: string): Promise<any> => {
  * @param {string}  name - The file name.
  * @return {Promise<any>} Promise that returns the file content.
  */
-const getFile = async (name: string): Promise<any> => {
+const getJsonFile = async (name: string): Promise<any> => {
   var request: S3.GetObjectRequest = {
     Bucket: bucket,
     Key: name,
@@ -50,7 +51,7 @@ const getFile = async (name: string): Promise<any> => {
   }
 };
 
-export default {
-  saveTextFile: saveTextFile,
-  getFile: saveTextFile,
+export {
+  saveJsonFile,
+  getJsonFile
 };

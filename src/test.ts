@@ -34,7 +34,7 @@ const testHTTPRequest = async () => {
     requestId: uuidv1(),
     method: PayloadHTTPMethod.Get,
     path: '/',
-    call: 'httpIncoming',
+    call: 'helloworld',
     parameters: {},
     body: {
       event: {
@@ -62,7 +62,7 @@ const testHTTPRequest = async () => {
     rawPayload: {},
     payload,
   };
-
+  
   await eventqueue.send('PayloadHTTP', evt);
 };
 

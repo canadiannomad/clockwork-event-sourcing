@@ -28,7 +28,8 @@ const handler = async (evt: Event<PayloadHTTP>): Promise<any> => {
     return;
   }
   const requestId = input.requestId;
-  let request = JSON.parse(await redis.get(`minevtsrc-async-${requestId}`)) as Request;
+  const requestKey = `minevtsrc-async-${requestId}`;
+  let request = JSON.parse(await redis.get(requestKey)) || {} as Request;
   
   request.output = {
     body: 'Hello World',
@@ -37,8 +38,8 @@ const handler = async (evt: Event<PayloadHTTP>): Promise<any> => {
     },
     statusCode: 200,
   };
-  await redis.set(`minevtsrc-async-${requestId}`, JSON.stringify(request), 'EX', 20);
-  //save the file on s3 ?
+  await redis.set(`requestKey`, JSON.stringify(request), 'EX', 20);
+  await s3.saveJsonFile(requestKey, request);
 
 
   return Promise.resolve();
@@ -54,4 +55,6 @@ const allowedFunctions = (): Record<string, unknown> => {
     helloworld: { listenFor, handler },
   };
 };
+
+export { allowedFunctions };
 
