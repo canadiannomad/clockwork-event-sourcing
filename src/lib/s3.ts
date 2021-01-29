@@ -5,7 +5,6 @@ import logger from './logger';
 
 const log = logger('S3');
 const s3 = new S3();
-const bucket = "mapreducelambda";
 
 /**
  * This function saves a text file into a S3 bucket.
@@ -15,14 +14,16 @@ const bucket = "mapreducelambda";
  */
 const saveJsonFile = async (name: string, content: string): Promise<any> => {
   const putObject: PutObjectRequest = {
-    Bucket: bucket,
+    Bucket: globalThis.s3Bucket,
     Body: JSON.stringify(content),
     Key: `${name}.json`,
   };
   log.info(`Saving file ${name}`, {putObject});
   try {
-    await s3.putObject(putObject).promise();
-    log.info('Saved file:', { name });
+    if(!globalThis.testMode){
+      await s3.putObject(putObject).promise();
+      log.info('Saved file:', { name });
+    }
   } catch (e) {
     log.info('Failed to save the file:', { name, e });
     process.exit(1);
@@ -37,7 +38,7 @@ const saveJsonFile = async (name: string, content: string): Promise<any> => {
  */
 const getJsonFile = async (name: string): Promise<any> => {
   var request: S3.GetObjectRequest = {
-    Bucket: bucket,
+    Bucket: globalThis.s3Bucket,
     Key: name,
   };
 
