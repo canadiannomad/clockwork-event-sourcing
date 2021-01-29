@@ -38,7 +38,7 @@ const handler = async (evt: Event<PayloadHTTP>): Promise<any> => {
     },
     statusCode: 200,
   };
-  await redis.set(`requestKey`, JSON.stringify(request), 'EX', 20);
+  await redis.set(`${requestKey}`, JSON.stringify(request), 'EX', 20);
   await s3.saveJsonFile(requestKey, request);
 
 
