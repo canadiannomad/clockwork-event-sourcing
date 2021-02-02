@@ -1,5 +1,5 @@
 {
-  "name": "minevtsrc",
+  "name": "clockwork",
   "version": "1.0.0",
   "description": "Minimal NodeJS(TypeScript) + Redis Event Sourcing Framework",
   "main": "built/init.js",

@@ -18,7 +18,7 @@
     <img src="docs/images/logo.png" alt="Logo" width="80" height="80">
   </a>
 
-  <h3 align="center">MinEvtSrc</h3>
+  <h3 align="center">Clockwork Event Source Framework</h3>
 
   <p align="center">
     A minimalist NodeJS (TypeScript) + Redis Event Sourcing Framework

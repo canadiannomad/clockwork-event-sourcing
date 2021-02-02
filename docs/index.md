@@ -5,7 +5,7 @@
     <img src="docs/images/logo.png" alt="Logo" width="80" height="80">
   </a>
 
-  <h3 align="center">MinEvtSrc</h3>
+  <h3 align="center">Clockwork Event Source Framework</h3>
 
   <p align="center">
     A minimalist NodeJS (TypeScript) + Redis Event Sourcing Framework
@@ -24,18 +24,18 @@
   <summary>Table of Contents</summary>
   <ul style="list-style-type:none;">
     <li>
-      <a href="#event-driven-architecture">Event-Driven Architecture</a>
+      <a href="#architecture-and-design">Architecture & Design</a>
       <ul style="list-style-type:none">
-		  <li><a href="#call-flow">Call Flow</a></li>
-		  <li><a href="#comparisons">Comparisons to other frameworks</a></li>
+	  	<li><a href="#key-features">Key Features</a></li>
+	  	<li><a href="#request-and-response">Request & Response</a></li>
+	  	<li><a href="#terminology">Terminology</a></li>
       </ul>
     </li>
     <li>
-      <a href="#getting-started">Getting Started</a>
+      Getting Started
       <ul style="list-style-type:none">
-        <li><a href="#prerequisites">Prerequisites</a></li>
 		<li><a href="#installation">Installation</a></li>
-		<li><a href="#configure-the-event-queue">Configuring the Event Queue</a></li>
+		<li><a href="#the-event-queue">The Event Queue</a></li>
 		<li><a href="#hello-world">Hello, World!</a></li>
       </ul>
     </li>
@@ -48,26 +48,59 @@
   </ul>
 </details>
 
-## Event-driven Architecture
+## Architecture & Design
 
 <img src="/docs/images/generic_event_diagram.jpg" />
 
 If you are completely unfamiliar with event-driven architectures, start by reading the [Wikipedia article](https://en.wikipedia.org/wiki/Event-driven_architecture).
 
-### Call Flow
+### Key Features
 
-<img src="/docs/images/call_flow.png" />
+### Request & Response
 
-## Prerequisites
+<img src="/docs/images/call_flow.png" style="margin-bottom: 5%;" />
+
+
+The above diagram gives a high level overview of a single request and response polling. In production, the event queue will managing hundreds of events simultaneously, especially as initial events will trigger secondary events.
+
+#### Request
+A request is a JSON object comprising the raw server request envelope including webserver headers as well as a sanitized envelope of the request body.
+
+***@TODO*** Add example request with required JSON keys
+
+The event queue assigns a [UUID](https://en.wikipedia.org/wiki/Universally_unique_identifier) for every request and returns this UUID immediately to the client so that the client can poll for the event completion. This UUID is used in every phase of the request and response to ensure threaded responses. UUIDs are unique across all event queues and types.  Once the request has been put in queue as a pending event, the event is stored in [Redis](https://en.wikipedia.org/wiki/Redis) for immediate processing as well as S3 for event backup and replay. At this point, the event queue waits for a listener to request the event and then waits for the acknowledgement of the event completion from the listener.
+
+The event listener then accepts the request with its JSON envelope and processes the event accordingly. The event listener may, and likely will, trigger cascade events. For example, if you trigger an event to update a user's password, you will probably want to send the user an email letting them know it was changed as part of your security policy. The event for ```update_password``` would then trigger the event for ```send_email``` which would have its own separate event flow and event listener. **_How will cascade events report back to an event listener?_**
+
+When the event listener has processed the event and its cascade events, it reports completion to the event queue with a response envelope.
+
+#### Response
+A response is a JSON object with the status of the event and any output or error messages.
+
+***@TODO*** Add example responses with various error and success scenarios
+
+A response has an acknowledgement and a response envelope with appropriate messages. In other words, an acknowledgement is merely the position of the event in the event workflow _which is separate from the event's success_. An event has an acknowledgement of its position as well as its success status, either success or fail.
+
+#### Acknowledgements (Statuses)
+1. **Pending** - When an event is first sent to the queue, it has a status of Pending until the listener has received the event for processing.
+2. **In Process** - When the event listener receives the event, the event queue acknowledges that the event is in process.
+3. **Complete** - When the event listener has terminated and informed the queue of the event disposition, the event queue acknowledges the event is complete and creates the response envelope with any error or success messages from the listener.
+
+#### Terminology
+1. **Client** - any programmatic client such as a web browser or API endpoint.
+2. **Event Queue** - [A FIFO queue](https://en.wikipedia.org/wiki/FIFO_(computing_and_electronics) of events with payloads and acknowledgements (statuses). The event queue is a type of data lake that is queried asynchronously by a client.
+3. **Event Listener** - A block of code that polls the event queue for events with the desired type and executes the appropriate actions for the event, including firing other events.
+4. **Event Type** - Custom-made event triggers that a listener would use as a key to poll the event queue for associated events.
+5. **Acknowledgement** - Essentially, an event status of its position in the  call flow. Because the event queue is the event reporter, it must acknowledge the event's position in the call flow in order to respond to the client poll for event completion.
 
 ## Installation
 
-#### Minimum Requirements
+### Minimum Requirements
 
-* Redis >= 5.0 for the [streams](https://redis.io/topics/streams-intro)
-* NodeJS >= 14.0
+* [Redis](https://en.wikipedia.org/wiki/Redis) >= 5.0 for the [streams](https://redis.io/topics/streams-intro)
+* [NodeJS](https://nodejs.org/) >= 14.0
 
-## Configure the Event Queue
+### Configuring the Event Queue
 
 ## Roadmap
 
@@ -77,10 +110,6 @@ If you are completely unfamiliar with event-driven architectures, start by readi
 
 ## Contributing
 
-### What do I need to know to help?
-If you are looking to help to with a code contribution our project uses **[insert list of programming languages, frameworks, or tools that your project uses]**. If you don't feel ready to make a code contribution yet, no problem! You can also check out the documentation issues **[link to the docs label or tag on your issue tracker]** or the design issues that we have **[link to design label or tag on issue tracker if your project tracks design issues]**.
-
-### How do I make a contribution?
 Never made an open source contribution before? Wondering how contributions work in the in our project? Here's a quick rundown!
 
 1. Find an issue that you are interested in addressing or a feature that you would like to add.
