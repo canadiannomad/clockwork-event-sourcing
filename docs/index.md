@@ -27,7 +27,8 @@
       <a href="#architecture-and-design">Architecture & Design</a>
       <ul style="list-style-type:none">
 	  	<li><a href="#key-features">Key Features</a></li>
-	  	<li><a href="#request-and-response">Request & Response</a></li>
+		<li><a href="#request-and-response">Request & Response</a></li>
+		<li><a href="#event-types">Event Types</a></li>
 	  	<li><a href="#terminology">Terminology</a></li>
       </ul>
     </li>
@@ -35,7 +36,7 @@
       Getting Started
       <ul style="list-style-type:none">
 		<li><a href="#installation">Installation</a></li>
-		<li><a href="#the-event-queue">The Event Queue</a></li>
+		<li><a href="#configuring-the-event-queue">Configuring the Event Queue</a></li>
 		<li><a href="#hello-world">Hello, World!</a></li>
       </ul>
     </li>
@@ -81,7 +82,7 @@ A response is a JSON object with the status of the event and any output or error
 
 A response has an acknowledgement and a response envelope with appropriate messages. In other words, an acknowledgement is merely the position of the event in the event workflow _which is separate from the event's success_. An event has an acknowledgement of its position as well as its success status, either success or fail.
 
-#### Acknowledgements (Statuses)
+#### Event Acknowledgements (Statuses)
 1. **Pending** - When an event is first sent to the queue, it has a status of Pending until the listener has received the event for processing.
 2. **In Process** - When the event listener receives the event, the event queue acknowledges that the event is in process.
 3. **Complete** - When the event listener has terminated and informed the queue of the event disposition, the event queue acknowledges the event is complete and creates the response envelope with any error or success messages from the listener.
@@ -93,6 +94,9 @@ A response has an acknowledgement and a response envelope with appropriate messa
 4. **Event Type** - Custom-made event triggers that a listener would use as a key to poll the event queue for associated events.
 5. **Acknowledgement** - Essentially, an event status of its position in the  call flow. Because the event queue is the event reporter, it must acknowledge the event's position in the call flow in order to respond to the client poll for event completion.
 
+### Event Types
+Event types are part of the event envelope and are carried with the event UUID for event context. You must create at least one event listener for every event type. A type can be any valid string.  Event types must be unique.
+
 ## Installation
 
 ### Minimum Requirements
@@ -100,7 +104,14 @@ A response has an acknowledgement and a response envelope with appropriate messa
 * [Redis](https://en.wikipedia.org/wiki/Redis) >= 5.0 for the [streams](https://redis.io/topics/streams-intro)
 * [NodeJS](https://nodejs.org/) >= 14.0
 
+### Setup
+
 ### Configuring the Event Queue
+
+### Hello, World!
+```
+example/events/helloworld
+```
 
 ## Roadmap
 
