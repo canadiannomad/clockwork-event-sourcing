@@ -26,9 +26,9 @@
     <a href="docs/index.md"><strong>Explore the docs »</strong></a>
     <br />
     <br />
-    <a href="https://github.com/canadiannomad/minevtsrc/issues">Report Bug</a>
+    <a href="https://github.com/canadiannomad/clockwork-event-sourcing/issues">Report Bug</a>
     ·
-    <a href="https://github.com/canadiannomad/minevtsrc/issues">Request Feature</a>
+    <a href="https://github.com/canadiannomad/clockwork-event-sourcing/issues">Request Feature</a>
   </p>
 </p>
 
@@ -102,7 +102,7 @@ docker run -d -p 80:80 docker/getting-started
 
 1. Clone the repo
    ```sh
-   git clone https://github.com/canadiannomad/minevtsrc.git
+   git clone https://github.com/canadiannomad/clockwork-event-sourcing.git
    ```
 2. Install NPM packages
    ```sh
@@ -127,7 +127,7 @@ _For more examples, please refer to the [Documentation](docs/index.md)_
 <!-- ROADMAP -->
 ## Roadmap
 
-See the [open issues](https://github.com/canadiannomad/minevtsrc/issues) for a list of proposed features (and known issues).
+See the [open issues](https://github.com/canadiannomad/clockwork-event-sourcing/issues) for a list of proposed features (and known issues).
 
 <!-- CONTRIBUTING -->
 ## Contributing
@@ -154,7 +154,7 @@ Distributed under the LGPL 3.0 License. See `LICENSE` for more information.
 
 Your Name - [@minevtsrc](https://twitter.com/your_username) - minevtsrc@.com
 
-Project Link: [https://github.com/canadiannomad/minevtsrc](https://github.com/canadiannomad/minevtsrc)
+Project Link: [https://github.com/canadiannomad/clockwork-event-sourcing](https://github.com/canadiannomad/clockwork-event-sourcing)
 
 
 
@@ -170,5 +170,5 @@ Project Link: [https://github.com/canadiannomad/minevtsrc](https://github.com/ca
 [contributors-shield]: https://img.shields.io/badge/CONTRIBUTORS-3-blueviolet?style=for-the-badge
 [contributors-url]: docs/contributors
 [license-shield]: https://img.shields.io/badge/LICENSE-LGPL--3.0-blue?style=for-the-badge
-[license-url]: https://github.com/canadiannomad/minevtsrc/blob/master/LICENSE.txt
+[license-url]: https://github.com/canadiannomad/clockwork-event-sourcing/blob/master/LICENSE.txt
 [product-screenshot]: docs/images/screenshot.png

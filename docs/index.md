@@ -13,9 +13,9 @@
     <a href="docs/index.md"><strong>Explore the docs »</strong></a>
     <br />
     <br />
-    <a href="https://github.com/canadiannomad/minevtsrc/issues">Report Bug</a>
+    <a href="https://github.com/canadiannomad/clockwork-event-sourcing/issues">Report Bug</a>
     ·
-    <a href="https://github.com/canadiannomad/minevtsrc/issues">Request Feature</a>
+    <a href="https://github.com/canadiannomad/clockwork-event-sourcing/issues">Request Feature</a>
   </p>
 </p>
 
@@ -108,6 +108,24 @@ Event types are part of the event envelope and are carried with the event UUID f
 
 ### Configuring the Event Queue
 
+### Creating an Event Listener
+
+Functions that event listeners should implement:
+
+bool filterEvents(Event)
+void handleStateUpdate(Event)
+Event handleSideEffects(Event)
+
+—
+
+Each microservice consists of a set of functions that listen for and handle certain types of events. Each microservice is responsible for its own state storage (Redis or MySQL)
+
+For example you might have a “HTTP Ping” microservice that listens for “HTTP” Events. When it gets triggered by the “HTTP” Event the filterEvents function should return true if the URL path is “/ping/{value}” (and false otherwise). The handleStateUpdate, may log the request in MySQL, then the handleSideEffects might set the HTTP response to “{value}”.
+
+When implementing microservices we need to keep the code that writes to the local state (handleStateUpdate) separate from the code that updates external resources (handleSideEffects). We need to do this because we need to be able to replay the state update code to make sure the local state is up to date with the Source of Truth while not accidentally resending emails, calling 3rd party APIs, etc.
+
+When a microservice completes, it will emit a new Event that will get stored, and may trigger other microservices.
+
 ### Hello, World!
 ```
 example/events/helloworld
@@ -125,7 +143,7 @@ Never made an open source contribution before? Wondering how contributions work 
 
 1. Find an issue that you are interested in addressing or a feature that you would like to add.
 2. Fork the repository associated with the issue to your local GitHub organization. This means that you will have a copy of the repository under your-GitHub-username/repository-name.
-3. Clone the repository to your local machine using `git clone https://github.com/canadiannomad/minevtsrc.git`.
+3. Clone the repository to your local machine using `git clone https://github.com/canadiannomad/clockwork-event-sourcing.git`.
 4. Create a new branch for your fix using git checkout -b branch-name-here.
 5. Make the appropriate changes for the issue you are trying to address or the feature that you want to add.
 6. Use `git add insert-paths-of-changed-files-here` to add the file contents of the changed files to the "snapshot" git uses to manage the state of the project, also known as the index.

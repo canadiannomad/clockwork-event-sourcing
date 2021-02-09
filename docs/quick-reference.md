@@ -13,8 +13,8 @@
     <a href="docs/"><strong>Explore the docs »</strong></a>
     <br />
     <br />
-    <a href="https://github.com/canadiannomad/minevtsrc/issues">Report Bug</a>
+    <a href="https://github.com/canadiannomad/clockwork-event-sourcing/issues">Report Bug</a>
     ·
-    <a href="https://github.com/canadiannomad/minevtsrc/issues">Request Feature</a>
+    <a href="https://github.com/canadiannomad/clockwork-event-sourcing/issues">Request Feature</a>
   </p>
 </p>
