@@ -1,8 +1,7 @@
-import eventqueue from '../src/lib/eventqueue';
-import * as events from './events';
 import logger from '../src/lib/logger';
+import eventqueue from '../src/index';
+import * as events from './events';
 import { QueueOptions } from '../src/lib/types';
-
 /* Logger */
 const log = logger('Runtime Route');
 
@@ -18,9 +17,9 @@ process.on('unhandledRejection', (err) => {
 
 /* Queue initializer */
 const init = async () => {
-  
   const options: QueueOptions = {
-    s3Bucket: 'yourbucket'
+    s3Bucket: 'yourbucket',
+    events: events
   };
 
   eventqueue.setup(options);

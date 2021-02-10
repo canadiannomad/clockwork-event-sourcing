@@ -13,4 +13,4 @@ let setConfiguration = (options: QueueOptions): void => {
   queueOptions = options;
 };
 
-export { getConfiguration, setConfiguration };
+export default { getConfiguration, setConfiguration };

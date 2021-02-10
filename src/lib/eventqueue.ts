@@ -3,7 +3,7 @@ import { hostname } from 'os';
 import { Event, QueueOptions } from './types';
 import redis from './redis';
 import logger from './logger';
-import  * as config from './config';
+import config from './config';
 
 const hn = hostname();
 const log = logger('Lib Event Queue');
@@ -228,5 +228,5 @@ const processEvent = async (funcName: string, evt: Event<any>) => {
 export default {
   setup,
   initializeQueues,
-  send,
+  send
 };

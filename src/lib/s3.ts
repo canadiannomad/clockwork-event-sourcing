@@ -2,7 +2,7 @@ import { QueueOptions } from './types';
 import { S3 } from 'aws-sdk/clients/all';
 import { PutObjectRequest } from 'aws-sdk/clients/s3';
 import logger from './logger';
-import * as config from './config';
+import config from './config';
 
 const log = logger('S3');
 const s3 = new S3();
@@ -56,4 +56,4 @@ const getJsonFile = async (name: string): Promise<any> => {
   }
 };
 
-export { saveJsonFile, getJsonFile };
+export default { saveJsonFile, getJsonFile };

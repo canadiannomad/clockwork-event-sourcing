@@ -2,7 +2,7 @@ import 'source-map-support/register';
 import { v1 as uuidv1 } from 'uuid';
 import {QueueOptions } from '../src/lib/types';
 import { Event, EventDirection, PayloadHTTP, PayloadHTTPMethod } from '../src/lib/types';
-import eventqueue from '../src/lib/eventqueue';
+import eventqueue from '../src';
 import logger from '../src/lib/logger';
 
 import * as events from './events';
@@ -22,7 +22,8 @@ process.on('unhandledRejection', (err) => {
 const init = async () => {
   const options: QueueOptions = {
     s3Bucket: 'lambdamapreduce',
-    testMode: true
+    testMode: true,
+    events
   };
   eventqueue.setup(options);
   await eventqueue.initializeQueues(events);

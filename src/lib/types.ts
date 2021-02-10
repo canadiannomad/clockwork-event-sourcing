@@ -2,6 +2,7 @@ export type LoggerFunction = (...args: any[]) => void;
 
 export interface QueueOptions{
   s3Bucket: string;
+  events?: any;
   testMode?: boolean;
 }
 
