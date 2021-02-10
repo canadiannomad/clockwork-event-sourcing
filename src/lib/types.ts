@@ -1,6 +1,9 @@
-declare let testMode: boolean;
-
 export type LoggerFunction = (...args: any[]) => void;
+
+export interface QueueOptions{
+  s3Bucket: string;
+  testMode?: boolean;
+}
 
 export enum EventDirection {
   Incoming = 'INCOMING',

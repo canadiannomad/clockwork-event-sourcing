@@ -1,9 +1,9 @@
-// import AWSXRay from 'aws-xray-sdk';
 import { EventEmitter } from 'events';
 import { hostname } from 'os';
-import { Event } from './types';
+import { Event, QueueOptions } from './types';
 import redis from './redis';
 import logger from './logger';
+import  * as config from './config';
 
 const hn = hostname();
 const log = logger('Lib Event Queue');
@@ -15,6 +15,10 @@ interface objToKVArrayCB {
 interface kvArrayToObjCB {
   (arg: any, key?: string): any;
 }
+
+const setup = (options: QueueOptions): void => {
+  config.setConfiguration(options);
+};
 
 /**
  * This function recieves an object and transform it into a key value object.
@@ -35,7 +39,6 @@ const objectToKVArray = (obj: Record<string, any>, callback: objToKVArrayCB | nu
   }
   return kvObj;
 };
-
 
 /**
  * This function receives a key value object and transforms it into an object.
@@ -196,7 +199,6 @@ const send = async (outputPayloadType: string, event: Event<any>): Promise<strin
   return await redis.xadd(`minevtsrc-stream-${outputPayloadType}`, '*', ...kvObj);
 };
 
-
 /**
  * This function process an incoming event.
  * Will increase the event hops each time the event is processed.
@@ -224,6 +226,7 @@ const processEvent = async (funcName: string, evt: Event<any>) => {
 };
 
 export default {
+  setup,
   initializeQueues,
   send,
 };

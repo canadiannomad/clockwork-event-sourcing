@@ -1,12 +1,11 @@
 import 'source-map-support/register';
 import { v1 as uuidv1 } from 'uuid';
-import './lib/types';
-import { Event, EventDirection, PayloadHTTP, PayloadHTTPMethod } from './lib/types';
-import eventqueue from './lib/eventqueue';
-import logger from './lib/logger';
+import {QueueOptions } from '../src/lib/types';
+import { Event, EventDirection, PayloadHTTP, PayloadHTTPMethod } from '../src/lib/types';
+import eventqueue from '../src/lib/eventqueue';
+import logger from '../src/lib/logger';
 
-
-import * as events from '../example/events';
+import * as events from './events';
 
 const log = logger('Integration Tests');
 
@@ -21,7 +20,11 @@ process.on('unhandledRejection', (err) => {
 });
 
 const init = async () => {
-  globalThis.testMode = true;
+  const options: QueueOptions = {
+    s3Bucket: 'lambdamapreduce',
+    testMode: true
+  };
+  eventqueue.setup(options);
   await eventqueue.initializeQueues(events);
   log.info('Done initiate queues');
   await testHTTPRequest();

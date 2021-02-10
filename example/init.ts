@@ -1,7 +1,7 @@
-import 'source-map-support/register';
-import eventqueue from './lib/eventqueue';
-import * as events from '../example/events';
-import logger from './lib/logger';
+import eventqueue from '../src/lib/eventqueue';
+import * as events from './events';
+import logger from '../src/lib/logger';
+import { QueueOptions } from '../src/lib/types';
 
 /* Logger */
 const log = logger('Runtime Route');
@@ -18,10 +18,13 @@ process.on('unhandledRejection', (err) => {
 
 /* Queue initializer */
 const init = async () => {
-  //libs configuration
-  globalThis.s3Bucket = "bucketname";
+  
+  const options: QueueOptions = {
+    s3Bucket: 'yourbucket'
+  };
 
-  //Initializes the queue and loads events from example/events folder
+  eventqueue.setup(options);
+
   await eventqueue.initializeQueues(events);
 };
 

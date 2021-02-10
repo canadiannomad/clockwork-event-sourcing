@@ -1,7 +1,8 @@
-import './types';
-import { S3 } from 'aws-sdk/clients/all'
+import { QueueOptions } from './types';
+import { S3 } from 'aws-sdk/clients/all';
 import { PutObjectRequest } from 'aws-sdk/clients/s3';
 import logger from './logger';
+import * as config from './config';
 
 const log = logger('S3');
 const s3 = new S3();
@@ -13,14 +14,16 @@ const s3 = new S3();
  * @return {Promise<any>} Promise that returns the S3 response.
  */
 const saveJsonFile = async (name: string, content: string): Promise<any> => {
+  const bucket = config.getConfiguration().s3Bucket;
+  const testMode = config.getConfiguration().testMode;
   const putObject: PutObjectRequest = {
-    Bucket: globalThis.s3Bucket,
+    Bucket: bucket,
     Body: JSON.stringify(content),
     Key: `${name}.json`,
   };
-  log.info(`Saving file ${name}`, {putObject});
+  log.info(`Saving file ${name}`, { putObject });
   try {
-    if(!globalThis.testMode){
+    if (!testMode) {
       await s3.putObject(putObject).promise();
       log.info('Saved file:', { name });
     }
@@ -37,8 +40,9 @@ const saveJsonFile = async (name: string, content: string): Promise<any> => {
  * @return {Promise<any>} Promise that returns the file content.
  */
 const getJsonFile = async (name: string): Promise<any> => {
+  const bucket = config.getConfiguration().s3Bucket;
   var request: S3.GetObjectRequest = {
-    Bucket: globalThis.s3Bucket,
+    Bucket: bucket,
     Key: name,
   };
 
@@ -52,7 +56,4 @@ const getJsonFile = async (name: string): Promise<any> => {
   }
 };
 
-export {
-  saveJsonFile,
-  getJsonFile
-};
+export { saveJsonFile, getJsonFile };

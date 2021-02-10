@@ -21,7 +21,8 @@
     "types": ["node"]
   },
   "include": [
-    "./src/init.ts",
-    "./src/test.ts"
+    "./example/init.ts",
+    "./example/test.ts",
+    "./src/index.ts"
   ]
 }
