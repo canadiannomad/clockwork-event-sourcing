@@ -11,10 +11,10 @@
   "private": false,
   "scripts": {
     "start": "bash bin/build.sh && bash bin/start.sh",
-    "test": "./bin/test.sh",
-    "lint": "./bin/lint.sh",
-    "build": "./bin/build.sh",
-    "pack": "./bin/pack.sh"
+    "test": "bash bin/test.sh",
+    "lint": "bash bin/lint.sh",
+    "build": "bash bin/build.sh",
+    "pack": "bash bin/pack.sh"
   },
   "dependencies": {
     "aws-sdk": "^2.824.0",

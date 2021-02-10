@@ -1,9 +1,9 @@
-// import AWSXRay from 'aws-xray-sdk';
 import { EventEmitter } from 'events';
 import { hostname } from 'os';
-import { Event } from './types';
+import { Event, QueueOptions } from './types';
 import redis from './redis';
 import logger from './logger';
+import * as config from './config';
 
 const hn = hostname();
 const log = logger('Lib Event Queue');
@@ -14,6 +14,10 @@ interface objToKVArrayCB {
 }
 interface kvArrayToObjCB {
   (arg: any, key?: string): any;
+}
+
+const setup = (options: QueueOptions) : void => {
+  config.setConfiguration(options);
 }
 
 /**
@@ -224,6 +228,7 @@ const processEvent = async (funcName: string, evt: Event<any>) => {
 };
 
 export default {
+  setup,
   initializeQueues,
   send,
 };
