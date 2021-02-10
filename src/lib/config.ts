@@ -1,22 +1,16 @@
-import logger from './logger';
 import { QueueOptions } from './types';
 
-const log = logger('Configuration');
-
-let options: QueueOptions = {
+let queueOptions: QueueOptions = {
   s3Bucket: '',
   testMode: false,
 };
 
-const getConfiguration = (): QueueOptions => {
-  log.info("Get configuration", JSON.stringify(options));
-  process.exit();
-  return options;
+let getConfiguration = (): QueueOptions => {
+  return queueOptions;
 };
 
-const setConfiguration = (options: QueueOptions) => {
-  log.info("Queue configuration set", JSON.stringify(options));
-  options = options;
+let setConfiguration = (options: QueueOptions): void => {
+  queueOptions = options;
 };
 
 export { getConfiguration, setConfiguration };

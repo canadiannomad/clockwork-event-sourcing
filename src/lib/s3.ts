@@ -6,8 +6,6 @@ import * as config from './config';
 
 const log = logger('S3');
 const s3 = new S3();
-const bucket = config.getConfiguration().s3Bucket;
-const testMode = config.getConfiguration().testMode;
 
 /**
  * This function saves a text file into a S3 bucket.
@@ -16,6 +14,8 @@ const testMode = config.getConfiguration().testMode;
  * @return {Promise<any>} Promise that returns the S3 response.
  */
 const saveJsonFile = async (name: string, content: string): Promise<any> => {
+  const bucket = config.getConfiguration().s3Bucket;
+  const testMode = config.getConfiguration().testMode;
   const putObject: PutObjectRequest = {
     Bucket: bucket,
     Body: JSON.stringify(content),
@@ -40,6 +40,7 @@ const saveJsonFile = async (name: string, content: string): Promise<any> => {
  * @return {Promise<any>} Promise that returns the file content.
  */
 const getJsonFile = async (name: string): Promise<any> => {
+  const bucket = config.getConfiguration().s3Bucket;
   var request: S3.GetObjectRequest = {
     Bucket: bucket,
     Key: name,

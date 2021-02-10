@@ -3,7 +3,7 @@ import { hostname } from 'os';
 import { Event, QueueOptions } from './types';
 import redis from './redis';
 import logger from './logger';
-import * as config from './config';
+import  * as config from './config';
 
 const hn = hostname();
 const log = logger('Lib Event Queue');
@@ -16,9 +16,9 @@ interface kvArrayToObjCB {
   (arg: any, key?: string): any;
 }
 
-const setup = (options: QueueOptions) : void => {
+const setup = (options: QueueOptions): void => {
   config.setConfiguration(options);
-}
+};
 
 /**
  * This function recieves an object and transform it into a key value object.
@@ -39,7 +39,6 @@ const objectToKVArray = (obj: Record<string, any>, callback: objToKVArrayCB | nu
   }
   return kvObj;
 };
-
 
 /**
  * This function receives a key value object and transforms it into an object.
@@ -199,7 +198,6 @@ const send = async (outputPayloadType: string, event: Event<any>): Promise<strin
   log.info(`Sending to queue minevtsrc-stream-${outputPayloadType}`);
   return await redis.xadd(`minevtsrc-stream-${outputPayloadType}`, '*', ...kvObj);
 };
-
 
 /**
  * This function process an incoming event.
