@@ -1,4 +1,4 @@
-import { QueueOptions } from './types';
+import { ClockWorkOptions } from './types';
 import { S3 } from 'aws-sdk/clients/all';
 import { PutObjectRequest } from 'aws-sdk/clients/s3';
 import logger from './logger';

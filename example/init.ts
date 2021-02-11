@@ -1,30 +1,21 @@
-import logger from '../src/lib/logger';
-import eventqueue from '../src/index';
+import ClockWork from '../src';
 import * as events from './events';
-import { QueueOptions } from '../src/lib/types';
-/* Logger */
-const log = logger('Runtime Route');
+import { ClockWorkOptions } from '../src/lib/types';
 
-/* Listener that catch exceptions and log */
-process.on('unhandledRejection', (err) => {
-  try {
-    (log.error || console.error)(err); // tslint:disable-line no-console
-  } catch (e) {
-    console.log('Double uncaught:', e, err); // tslint:disable-line no-console
-  }
-  process.exit(1); // tslint:disable-line no-process-exit
-});
+const options: ClockWorkOptions = {
+  s3Bucket: 'yourbucket',
+  events: events,
+  redisConfig: {
+    host: '127.0.0.1',
+    password: '',
+    port: '6379',
+  },
+};
 
-/* Queue initializer */
+const cw = ClockWork(options);
+
 const init = async () => {
-  const options: QueueOptions = {
-    s3Bucket: 'yourbucket',
-    events: events
-  };
-
-  eventqueue.setup(options);
-
-  await eventqueue.initializeQueues(events);
+  await cw.initializeQueues(events);
 };
 
 init();

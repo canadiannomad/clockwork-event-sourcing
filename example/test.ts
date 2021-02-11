@@ -1,13 +1,18 @@
 import 'source-map-support/register';
 import { v1 as uuidv1 } from 'uuid';
-import {QueueOptions } from '../src/lib/types';
+import {ClockWorkOptions } from '../src/lib/types';
 import { Event, EventDirection, PayloadHTTP, PayloadHTTPMethod } from '../src/lib/types';
-import eventqueue from '../src';
+import ClockWork from '../src';
 import logger from '../src/lib/logger';
-
 import * as events from './events';
 
 const log = logger('Integration Tests');
+const options: ClockWorkOptions = {
+    s3Bucket: 'lambdamapreduce',
+    testMode: true,
+    events
+  };
+const cw = ClockWork(options);
 
 process.on('warning', (e) => log.warn(e.stack));
 process.on('unhandledRejection', (err) => {
@@ -20,13 +25,7 @@ process.on('unhandledRejection', (err) => {
 });
 
 const init = async () => {
-  const options: QueueOptions = {
-    s3Bucket: 'lambdamapreduce',
-    testMode: true,
-    events
-  };
-  eventqueue.setup(options);
-  await eventqueue.initializeQueues(events);
+  await cw.initializeQueues(events);
   log.info('Done initiate queues');
   await testHTTPRequest();
 };
@@ -67,7 +66,7 @@ const testHTTPRequest = async () => {
     payload,
   };
   
-  await eventqueue.send('PayloadHTTP', evt);
+  await cw.send('PayloadHTTP', evt);
 };
 
 init();

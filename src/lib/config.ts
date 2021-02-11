@@ -1,15 +1,15 @@
-import { QueueOptions } from './types';
+import { ClockWorkOptions } from './types';
 
-let queueOptions: QueueOptions = {
+let queueOptions: ClockWorkOptions = {
   s3Bucket: '',
   testMode: false,
 };
 
-let getConfiguration = (): QueueOptions => {
+let getConfiguration = (): ClockWorkOptions => {
   return queueOptions;
 };
 
-let setConfiguration = (options: QueueOptions): void => {
+let setConfiguration = (options: ClockWorkOptions): void => {
   queueOptions = options;
 };
 
