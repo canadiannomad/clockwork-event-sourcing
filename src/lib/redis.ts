@@ -4,6 +4,7 @@ import ioredis = require('ioredis');
 import * as util from 'util';
 import getSecretValue from './getSecretValue';
 import logger from './logger';
+import config from './config';
 
 evtEmitter.EventEmitter.defaultMaxListeners = 40;
 
@@ -12,12 +13,9 @@ const promisify = util.promisify;
 
 let client: ioredis;
 
-const redisConnect = (host: string, password: string) => {
+const redisConnect = (host: string, password: string, port:number = 6379) => {
   return new Promise((resolve) => {
-    const config: any = globalThis.testMode
-      ? { host, port: 6379 }
-      : {
-          // dnsLookup: (address, callback) => callback(null, address),
+    const config: any = {
           host,
           port: 6379,
         };
@@ -56,10 +54,10 @@ const redisClient = (func: string) => {
   return async (...args: any): Promise<any> => {
     if (!client) {
       log.info('Logging into Redis');
-      const sec = await getSecretValue('redis');
+      const redisConfig = config.getConfiguration().redisConfig;
       log.info('Redis Auth Starting');
       try {
-        await redisConnect(sec.host, sec.auth_token);
+        await redisConnect(redisConfig.host, redisConfig.password, redisConfig.port);
         log.info('Redis Auth Complete');
       } catch (e) {
         log.error('Redis Auth failed:', e);

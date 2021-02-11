@@ -8,10 +8,13 @@ import * as events from './events';
 
 const log = logger('Integration Tests');
 const options: ClockWorkOptions = {
-    s3Bucket: 'lambdamapreduce',
-    testMode: true,
-    events
-  };
+  s3Bucket: 'yourbucketname',
+  testMode: true,
+  events,
+  redisConfig: {
+    host: '127.0.0.1',
+  }
+};
 const cw = ClockWork(options);
 
 process.on('warning', (e) => log.warn(e.stack));

@@ -8,7 +8,7 @@ const options: ClockWorkOptions = {
   redisConfig: {
     host: '127.0.0.1',
     password: '',
-    port: '6379',
+    port: 6379,
   },
 };
 

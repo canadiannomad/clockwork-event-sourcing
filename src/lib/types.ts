@@ -9,8 +9,8 @@ export interface ClockWorkOptions {
 
 export interface RedisConfig {
   host: string;
-  password: string;
-  port: string;
+  password?: string;
+  port?: number;
 }
 
 export enum EventDirection {
