@@ -9,7 +9,7 @@
  */
 import { Event, PayloadHTTP, Request } from '../../../src/lib/types';
 import redis from '../../../src/lib/redis';
-import * as s3 from '../../../src/lib/s3';
+import s3 from '../../../src/lib/s3';
 import 'source-map-support/register';
 
 /**

@@ -1,8 +1,16 @@
 export type LoggerFunction = (...args: any[]) => void;
 
-export interface QueueOptions{
+export interface ClockWorkOptions {
   s3Bucket: string;
+  events?: any;
   testMode?: boolean;
+  redisConfig?: RedisConfig;
+}
+
+export interface RedisConfig {
+  host: string;
+  password?: string;
+  port?: number;
 }
 
 export enum EventDirection {
