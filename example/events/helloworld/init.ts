@@ -11,6 +11,7 @@ import { Event, PayloadHTTP, Request } from '../../../src/lib/types';
 import redis from '../../../src/lib/redis';
 import s3 from '../../../src/lib/s3';
 import 'source-map-support/register';
+import ping from '../../states/ping';
 
 /**
   This array contains the type of events we are listening for
@@ -29,8 +30,8 @@ const handler = async (evt: Event<PayloadHTTP>): Promise<any> => {
   }
   const requestId = input.requestId;
   const requestKey = `minevtsrc-async-${requestId}`;
-  let request = JSON.parse(await redis.get(requestKey)) || {} as Request;
-  
+  let request = JSON.parse(await redis.get(requestKey)) || ({} as Request);
+
   request.output = {
     body: 'Hello World',
     headers: {
@@ -41,8 +42,12 @@ const handler = async (evt: Event<PayloadHTTP>): Promise<any> => {
   await redis.set(`${requestKey}`, JSON.stringify(request), 'EX', 20);
   await s3.saveJsonFile(requestKey, request);
 
-
   return Promise.resolve();
+};
+
+const outputPayloadType = ['PayloadHTTP'];
+const stateChange = () => {
+  ping.counter += 1;
 };
 
 /**
@@ -57,4 +62,3 @@ const allowedFunctions = (): Record<string, unknown> => {
 };
 
 export { allowedFunctions };
-
