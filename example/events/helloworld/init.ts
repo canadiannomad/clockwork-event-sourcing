@@ -7,10 +7,10 @@
  * State Changes: Updates Async Request with Output
  * Next: None
  */
-import { Event, PayloadHTTP, Request } from '../../../src/lib/types';
-import redis from '../../../src/lib/redis';
-import s3 from '../../../src/lib/s3';
-import 'source-map-support/register';
+import { Event } from '../../../src/lib/types';
+import redis from '../../../src/redis';
+import s3 from '../../../src/s3';
+import {PayloadHTTP, Request} from '../../types';
 import ping from '../../states/ping';
 
 /**

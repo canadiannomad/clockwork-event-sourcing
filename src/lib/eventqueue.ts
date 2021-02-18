@@ -1,6 +1,6 @@
 import { EventEmitter } from 'events';
 import { hostname } from 'os';
-import { Event, ClockWorkOptions } from './types';
+import { ClockWorkOptions, Event } from './types';
 import redis from './redis';
 import logger from './logger';
 import config from './config';
@@ -152,7 +152,7 @@ const clockwork = (options: ClockWorkOptions) => {
                         (arg: Array<string>, key: string): Record<string, any> => {
                           const evtObj = kvArrayToObject(arg, (a) => {
                             return JSON.parse(a);
-                          }) as Event<any>;
+                          });
                           log.info('Got Event', { key, evtObj });
                           evtListener.emit('process', key, evtObj);
                           return evtObj;

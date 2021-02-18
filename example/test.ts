@@ -1,9 +1,8 @@
-import 'source-map-support/register';
 import { v1 as uuidv1 } from 'uuid';
-import {ClockWorkOptions } from '../src/lib/types';
-import { Event, EventDirection, PayloadHTTP, PayloadHTTPMethod } from '../src/lib/types';
+import { Event, EventDirection, ClockWorkOptions} from '../src/lib/types';
+import {PayloadHTTP, Request, PayloadHTTPMethod} from './types'
 import ClockWork from '../src';
-import logger from '../src/lib/logger';
+import logger from '../src/logger';
 import * as events from './events';
 
 const log = logger('Integration Tests');
