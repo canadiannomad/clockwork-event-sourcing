@@ -4,66 +4,15 @@ import { ClockWorkOptions, Event } from './types';
 import redis from './redis';
 import logger from './logger';
 import config from './config';
+import utils from './utils';
 
 const clockwork = (options: ClockWorkOptions) => {
   const hn = hostname();
   const log = logger('Lib Event Queue');
   const queues = {};
   let allowedEvents = {};
-  interface objToKVArrayCB {
-    (arg: any): any;
-  }
-  interface kvArrayToObjCB {
-    (arg: any, key?: string): any;
-  }
 
   config.setConfiguration(options);
-
-  /**
-   * This function recieves an object and transform it into a key value object.
-   * @param {Record<string, any>}  obj - The object to transform.
-   * @param {objToKVArrayCB} callback - The callback function.
-   * @return {Array<any>} The key value array.
-   */
-  const objectToKVArray = (obj: Record<string, any>, callback: objToKVArrayCB | null = null): Array<any> => {
-    if (!callback) {
-      callback = (a) => a;
-    }
-    const kvObj: string[] = [];
-    const objKeys = Object.keys(obj);
-    for (let k = 0; k < objKeys.length; k += 1) {
-      const key = objKeys[k];
-      kvObj.push(key);
-      kvObj.push(callback(obj[key]));
-    }
-    return kvObj;
-  };
-
-  /**
-   * This function receives a key value object and transforms it into an object.
-   * @param {Array<any>}  kvArray - The key value to transform.
-   * @param {kvArrayToObjCB} callback - The callback function.
-   * @return {Record<string, any>} The transformed object.
-   */
-  const kvArrayToObject = (kvArray: Array<any>, callback: kvArrayToObjCB | null = null): Record<string, any> => {
-    if (kvArray.length % 2 != 0) {
-      throw new Error('Array must have an even number of elements.');
-    }
-    if (!callback) {
-      callback = (a) => a;
-    }
-    const newObj: Record<string, any> = {};
-    let key = '';
-    for (let fieldId = 0; fieldId < kvArray.length; fieldId += 1) {
-      if (key == '') {
-        key = kvArray[fieldId];
-      } else {
-        newObj[key] = callback(kvArray[fieldId], key);
-        key = '';
-      }
-    }
-    return newObj;
-  };
 
   /**
    * This function gets a list of events and return the allowed functions
@@ -143,14 +92,14 @@ const clockwork = (options: ClockWorkOptions) => {
             }
             if (response) {
               for (let entry = 0; entry < response.length; entry += 1) {
-                kvArrayToObject(response[entry], (arg: Array<Array<any>>[]): Record<string, Array<any>>[] => {
+                utils.kvArrayToObject(response[entry], (arg: Array<Array<any>>[]): Record<string, Array<any>>[] => {
                   const newArray: Record<string, Array<any>>[] = [];
                   for (let evtPos = 0; evtPos < arg.length; evtPos += 1) {
                     newArray.push(
-                      kvArrayToObject(
+                      utils.kvArrayToObject(
                         arg[evtPos],
                         (arg: Array<string>, key: string): Record<string, any> => {
-                          const evtObj = kvArrayToObject(arg, (a) => {
+                          const evtObj = utils.kvArrayToObject(arg, (a) => {
                             return JSON.parse(a);
                           });
                           log.info('Got Event', { key, evtObj });
@@ -193,7 +142,7 @@ const clockwork = (options: ClockWorkOptions) => {
    * @return {Promise<any>} A redis promise.
    */
   const send = async (outputPayloadType: string, event: Event<any>): Promise<string> => {
-    const kvObj: string[] = objectToKVArray(event, JSON.stringify);
+    const kvObj: string[] = utils.objectToKVArray(event, JSON.stringify);
     log.info(`Sending to queue minevtsrc-stream-${outputPayloadType}`);
     return await redis.xadd(`minevtsrc-stream-${outputPayloadType}`, '*', ...kvObj);
   };

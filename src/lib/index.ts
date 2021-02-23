@@ -6,4 +6,6 @@ export * as getSecretValue from './getSecretValue';
 export * as logger from './logger';
 export * as redis from './redis';
 export * as s3 from './s3';
+export * as storage from './storage';
 export * as types from './types';
+export * as utils from './utils';
