@@ -20,11 +20,11 @@ const getEvent = async (stream, key) => {
   return await redis.xread('count', 1, 'streams', stream, key);
 };
 
-const listStreamEvents = async (stream) => {
-//   const events = await redis.xread('count', 0, 'streams', stream, '0');
-//   if (events.length == 0) {
-//       // to get s3 list of files need to be in pages of 1,000
-//   }
+const getStreamEvents = async (stream) => {
+      const events = await redis.xread('count', 0, 'streams', stream, '0');
+      if (events.length == 0) {
+          // to get s3 list of files need to be in pages of 1,000
+      }
 };
 
 export default {

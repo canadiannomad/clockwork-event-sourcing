@@ -56,4 +56,45 @@ const getJsonFile = async (name: string): Promise<any> => {
   }
 };
 
-export default { saveJsonFile, getJsonFile };
+/**
+ * Returns the file list on a folder.
+ * @param {string}  folder - The folder name.
+ * @param {string}  continuationToken - The continuation token.
+ * @return {Promise<any>} Promise that returns the folder files list.
+ */
+const listFiles = async (folder: string, continuationToken: string) => {
+  try {
+    let result = [];
+    const bucket = config.getConfiguration().s3Bucket;
+    var request = {
+      Bucket: bucket,
+      Prefix: `${folder}/`,
+    };
+
+    if (continuationToken) {
+      request.ContinuationToken = continuationToken;
+    }
+    const retVal = await s3.listObjectsV2(request).promise();
+    if (retVal.Contents?.length > 0) {
+      let files = retVal.Contents.map((file) => {
+        return file.Key.replace(`${folder}/`, '');
+      });
+      result = result.concat(files);
+    }
+    if (retVal?.IsTruncated) {
+      var recursiveFilesResponse = await listFiles(folder, retVal.NextContinuationToken);
+      if (recursiveFilesResponse?.length > 0) {
+        result = result.concat(recursiveFilesResponse);
+      }
+    }
+    if (!continuationToken) {
+      result.shift(); //remove first item is folder name
+    }
+    return result;
+  } catch (e) {
+    log.info('Failed to get the file:', { name, e });
+    return e;
+  }
+};
+
+export default { saveJsonFile, getJsonFile, listFiles };

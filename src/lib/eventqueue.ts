@@ -69,11 +69,14 @@ const clockwork = (options: ClockWorkOptions) => {
             // log.info(`Failed add ${allowedEvents[funcName].listenFor[j]}`, e);
             // Do nothing.  Group already exists.
           }
+
+          ////////////////////var eventsList = storage.getStreamEvents(allowedEvents[funcName].listenFor[j])
         }
         for (let j = 0; j < allowedEvents[funcName].listenFor.length; j += 1) {
           const evtListener = new EventEmitter();
           setInterval(async () => {
             let response = [];
+            let streamName = `minevtsrc-stream-${allowedEvents[funcName].listenFor[j]}`;
             try {
               response = await redis.xreadgroup(
                 'GROUP',
@@ -84,7 +87,7 @@ const clockwork = (options: ClockWorkOptions) => {
                 'COUNT',
                 '5',
                 'STREAMS',
-                `minevtsrc-stream-${allowedEvents[funcName].listenFor[j]}`,
+                streamName,
                 '>',
               );
             } catch (e) {
@@ -143,7 +146,7 @@ const clockwork = (options: ClockWorkOptions) => {
    */
   const send = async (outputPayloadType: string, event: Event<any>): Promise<string> => {
     const kvObj: string[] = utils.objectToKVArray(event, JSON.stringify);
-    log.info(`Sending to queue minevtsrc-stream-${outputPayloadType}`);
+    ////////storage.addEvent(streamName, evt);
     return await redis.xadd(`minevtsrc-stream-${outputPayloadType}`, '*', ...kvObj);
   };
 
@@ -159,7 +162,7 @@ const clockwork = (options: ClockWorkOptions) => {
       evt.hops += 1;
       const evtRequest: Event<any> | null = await allowedEvents[funcName].handler(evt);
       if (evtRequest && allowedEvents[funcName].outputPayloadType) {
-        log.info('Storing Event To Redis', { evtRequest });
+        log.info('Storing Event', { evtRequest });
         await send(allowedEvents[funcName].outputPayloadType, evtRequest);
         if (allowedEvents[funcName].stateChange) {
           await allowedEvents[funcName].stateChange(evtRequest);
