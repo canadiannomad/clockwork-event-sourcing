@@ -5,6 +5,7 @@ import redis from './redis';
 import logger from './logger';
 import config from './config';
 import utils from './utils';
+import storage from './storage';
 
 const clockwork = (options: ClockWorkOptions) => {
   const hn = hostname();
@@ -69,8 +70,7 @@ const clockwork = (options: ClockWorkOptions) => {
             // log.info(`Failed add ${allowedEvents[funcName].listenFor[j]}`, e);
             // Do nothing.  Group already exists.
           }
-
-          ////////////////////var eventsList = storage.getStreamEvents(allowedEvents[funcName].listenFor[j])
+          var eventsList = await storage.getStreamEvents(`minevtsrc-stream-${allowedEvents[funcName].listenFor[j]}`);
         }
         for (let j = 0; j < allowedEvents[funcName].listenFor.length; j += 1) {
           const evtListener = new EventEmitter();

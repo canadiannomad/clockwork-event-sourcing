@@ -48,8 +48,9 @@ const getJsonFile = async (name: string): Promise<any> => {
 
   try {
     const retVal = await s3.getObject(request).promise();
-    log.info('Got file:', { name });
-    return JSON.parse(retVal as any);
+    const data = retVal.Body.toString('utf-8');
+    log.info('Got file:', { name});
+    return JSON.parse(data as any);
   } catch (e) {
     log.info('Failed to get the file:', { name, e });
     return e;
@@ -62,18 +63,17 @@ const getJsonFile = async (name: string): Promise<any> => {
  * @param {string}  continuationToken - The continuation token.
  * @return {Promise<any>} Promise that returns the folder files list.
  */
-const listFiles = async (folder: string, continuationToken: string) => {
+const listFiles = async (folder: string, continuationToken: string = null) => {
   try {
+    log.info(`Getting files from ${folder}, ${continuationToken}`);
     let result = [];
     const bucket = config.getConfiguration().s3Bucket;
     var request = {
       Bucket: bucket,
       Prefix: `${folder}/`,
+      ContinuationToken: continuationToken
     };
 
-    if (continuationToken) {
-      request.ContinuationToken = continuationToken;
-    }
     const retVal = await s3.listObjectsV2(request).promise();
     if (retVal.Contents?.length > 0) {
       let files = retVal.Contents.map((file) => {
@@ -92,7 +92,7 @@ const listFiles = async (folder: string, continuationToken: string) => {
     }
     return result;
   } catch (e) {
-    log.info('Failed to get the file:', { name, e });
+    log.error(`Failed to get the folder content: ${folder}`, { e });
     return e;
   }
 };
