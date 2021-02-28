@@ -61,8 +61,8 @@ const clockwork = (options: ClockWorkOptions) => {
             log.info(`Listening for ${allowedEvents[funcName].listenFor[j]} to call ${funcName}`);
             await redis.xgroup(
               'CREATE',
-              `minevtsrc-stream-${allowedEvents[funcName].listenFor[j]}`,
-              `minevtsrc-cg-${funcName}`,
+              `${options.redisConfig.prefix}-stream-${allowedEvents[funcName].listenFor[j]}`,
+              `${options.redisConfig.prefix}-cg-${funcName}`,
               '$',
               'MKSTREAM',
             );
@@ -70,17 +70,17 @@ const clockwork = (options: ClockWorkOptions) => {
             // log.info(`Failed add ${allowedEvents[funcName].listenFor[j]}`, e);
             // Do nothing.  Group already exists.
           }
-          var eventsList = await storage.getStreamEvents(`minevtsrc-stream-${allowedEvents[funcName].listenFor[j]}`);
+          var eventsList = await storage.getStreamEvents(`${options.redisConfig.prefix}-stream-${allowedEvents[funcName].listenFor[j]}`);
         }
         for (let j = 0; j < allowedEvents[funcName].listenFor.length; j += 1) {
           const evtListener = new EventEmitter();
           setInterval(async () => {
             let response = [];
-            let streamName = `minevtsrc-stream-${allowedEvents[funcName].listenFor[j]}`;
+            let streamName = `${options.redisConfig.prefix}-stream-${allowedEvents[funcName].listenFor[j]}`;
             try {
               response = await redis.xreadgroup(
                 'GROUP',
-                `minevtsrc-cg-${funcName}`,
+                `${options.redisConfig.prefix}-cg-${funcName}`,
                 `${hn}-${funcName}-${allowedEvents[funcName].listenFor[j]}`,
                 //'BLOCK',
                 //'0',
@@ -122,8 +122,8 @@ const clockwork = (options: ClockWorkOptions) => {
               log.info('Processing Queue');
               await processEvent(funcName, evt);
               await redis.xack(
-                `minevtsrc-stream-${allowedEvents[funcName].listenFor[j]}`,
-                `minevtsrc-cg-${funcName}`,
+                `${options.redisConfig.prefix}-stream-${allowedEvents[funcName].listenFor[j]}`,
+                `${options.redisConfig.prefix}-cg-${funcName}`,
                 evtId,
               );
             } catch (e) {
@@ -145,7 +145,7 @@ const clockwork = (options: ClockWorkOptions) => {
    * @return {Promise<any>} A redis promise.
    */
   const send = async (outputPayloadType: string, event: Event<any>): Promise<string> => {
-    return await storage.addEvent(`minevtsrc-stream-${outputPayloadType}`, event);
+    return await storage.addEvent(`${options.redisConfig.prefix}-stream-${outputPayloadType}`, event);
   };
 
   /**

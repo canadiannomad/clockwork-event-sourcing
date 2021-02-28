@@ -11,6 +11,7 @@ export interface RedisConfig {
   host: string;
   password?: string;
   port?: number;
+  prefix: string;
 }
 
 export enum EventDirection {

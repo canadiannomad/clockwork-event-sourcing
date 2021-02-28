@@ -1,9 +1,6 @@
 import { ClockWorkOptions } from './types';
 
-let queueOptions: ClockWorkOptions = {
-  s3Bucket: '',
-  testMode: false,
-};
+let queueOptions: ClockWorkOptions;
 
 let getConfiguration = (): ClockWorkOptions => {
   return queueOptions;

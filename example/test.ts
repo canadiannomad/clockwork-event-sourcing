@@ -12,6 +12,7 @@ const options: ClockWorkOptions = {
   events,
   redisConfig: {
     host: '127.0.0.1',
+    prefix: 'test-clockwork'
   }
 };
 const cw = ClockWork(options);

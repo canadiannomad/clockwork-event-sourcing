@@ -28,7 +28,7 @@ const handler = async (evt: Event<PayloadHTTP>): Promise<any> => {
     return;
   }
   const requestId = input.requestId;
-  const requestKey = `minevtsrc-async-${requestId}`;
+  const requestKey = `hello-world-async-${requestId}`;
   let request = JSON.parse(await redis.get(requestKey)) || ({} as Request);
 
   request.output = {
