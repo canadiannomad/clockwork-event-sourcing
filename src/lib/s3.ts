@@ -65,7 +65,6 @@ const getJsonFile = async (name: string): Promise<any> => {
  */
 const listFiles = async (folder: string, continuationToken: string = null) => {
   try {
-    log.info(`Getting files from ${folder}, ${continuationToken}`);
     let result = [];
     const bucket = config.getConfiguration().s3Bucket;
     var request = {
@@ -73,6 +72,8 @@ const listFiles = async (folder: string, continuationToken: string = null) => {
       Prefix: `${folder}/`,
       ContinuationToken: continuationToken
     };
+
+    log.info(`Getting files from ${folder}, ${continuationToken}`, bucket);
 
     const retVal = await s3.listObjectsV2(request).promise();
     if (retVal.Contents?.length > 0) {

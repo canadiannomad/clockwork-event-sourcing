@@ -9,7 +9,6 @@
  */
 import { Event } from '../../../src/lib/types';
 import redis from '../../../src/redis';
-import s3 from '../../../src/s3';
 import {PayloadHTTP, Request} from '../../types';
 import ping from '../../states/ping';
 
@@ -40,7 +39,6 @@ const handler = async (evt: Event<PayloadHTTP>): Promise<any> => {
     statusCode: 200,
   };
   await redis.set(`${requestKey}`, JSON.stringify(request), 'EX', 20);
-  await s3.saveJsonFile(requestKey, request);
 
   return Promise.resolve();
 };
@@ -57,7 +55,7 @@ const stateChange = () => {
  */
 const allowedFunctions = (): Record<string, unknown> => {
   return {
-    helloworld: { listenFor, handler },
+    helloworld: { listenFor, handler, outputPayloadType},
   };
 };
 

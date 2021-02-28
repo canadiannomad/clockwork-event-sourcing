@@ -65,11 +65,11 @@ const testHTTPRequest = async () => {
     hops: 1,
     cost: '0.00',
     rawPayload: {},
-    payload,
+    payload
   };
   
   var response =  await cw.send('PayloadHTTP', evt);
-  console.log(` send response${response}`);
+  console.log(`send event`, evt);
   
 };
 

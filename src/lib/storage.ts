@@ -5,22 +5,24 @@ import logger from './logger';
 
 const log = logger('Lib Storage');
 
-const addEvent = async (content, stream) => {
-  let id = await redisAdd(content, stream);
-  await s3.saveJsonFile(`events/${id}`, content);
+const addEvent = async (stream, event) : Promise<any> => {
+  log.info(`Adding event to redis ${stream}`);
+  event.stored = true;
+  let id = await redisAdd(event, stream);
+  log.info(`Adding event to S3: events/${stream}/${id}`);
+  return await s3.saveJsonFile(`events/${stream}/${id}`, event);
 };
 
-const redisAdd = async (content, stream, key: string = '*') => {
-  const kvObj: string[] = utils.objectToKVArray(content, JSON.stringify);
-  log.info(`Sending to queue ${stream}`);
+const redisAdd = async (event, stream, key: string = '*') : Promise<any> => {
+  const kvObj: string[] = utils.objectToKVArray(event, JSON.stringify);
   return await redis.xadd(stream, key, ...kvObj);
 };
 
-const getEvent = async (stream, key) => {
+const getEvent = async (stream, key) : Promise<any> => {
   return await redis.xread('count', 1, 'streams', stream, key);
 };
 
-const getStreamEvents = async (stream) => {
+const getStreamEvents = async (stream) : Promise<any> => {
   const events = await redis.xread('count', 0, 'streams', stream, '0');
   if (!events) {
     let s3Events = [];
@@ -31,7 +33,7 @@ const getStreamEvents = async (stream) => {
   }
 };
 
-const getS3Events = async (folder) => {
+const getS3Events = async (folder) : Promise<any> => {
   var fileNames = await s3.listFiles(`events/${folder}`);
   var files = [];
   for (const name of fileNames) {

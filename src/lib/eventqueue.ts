@@ -145,9 +145,7 @@ const clockwork = (options: ClockWorkOptions) => {
    * @return {Promise<any>} A redis promise.
    */
   const send = async (outputPayloadType: string, event: Event<any>): Promise<string> => {
-    const kvObj: string[] = utils.objectToKVArray(event, JSON.stringify);
-    ////////storage.addEvent(streamName, evt);
-    return await redis.xadd(`minevtsrc-stream-${outputPayloadType}`, '*', ...kvObj);
+    return await storage.addEvent(`minevtsrc-stream-${outputPayloadType}`, event);
   };
 
   /**
@@ -160,13 +158,19 @@ const clockwork = (options: ClockWorkOptions) => {
     try {
       log.info(`Received message on queue '${funcName}'`);
       evt.hops += 1;
+
       const evtRequest: Event<any> | null = await allowedEvents[funcName].handler(evt);
-      if (evtRequest && allowedEvents[funcName].outputPayloadType) {
-        log.info('Storing Event', { evtRequest });
-        await send(allowedEvents[funcName].outputPayloadType, evtRequest);
-        if (allowedEvents[funcName].stateChange) {
-          await allowedEvents[funcName].stateChange(evtRequest);
+      if (allowedEvents[funcName].outputPayloadType) {
+        
+        if(!evt.stored){
+          log.info('Storing Event', { evt });
+          evt.stored = true;
+          await send(allowedEvents[funcName].outputPayloadType, evt);
         }
+        ////What to do in state change????
+        // if (allowedEvents[funcName].stateChange) {
+        //   await allowedEvents[funcName].stateChange(evt);
+        // }
       }
     } catch (e) {
       log.error('Error in process', e);

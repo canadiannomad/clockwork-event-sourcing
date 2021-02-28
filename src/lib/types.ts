@@ -27,4 +27,5 @@ export interface Event<T> {
   cost: string;
   rawPayload: any;
   payload: T;
+  stored?: boolean;
 }
