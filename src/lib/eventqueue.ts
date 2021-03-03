@@ -43,6 +43,15 @@ const clockwork = (options: ClockWorkOptions) => {
   };
 
   /**
+   * This function initializes the event queue storage.
+   * Gets events from S3 and cache them in Redis stream.
+   * @param {any}  events - The events array.
+   */
+  const initializeStorage = async (stream): Promise<void> => {
+    await storage.getStreamEvents(stream);
+  };
+
+  /**
    * This function initializes the event queues.
    * Each second will be reading events from the stream group if any.
    * Will be limited to get up to five events each time.
@@ -70,7 +79,8 @@ const clockwork = (options: ClockWorkOptions) => {
             // log.info(`Failed add ${allowedEvents[funcName].listenFor[j]}`, e);
             // Do nothing.  Group already exists.
           }
-          var eventsList = await storage.getStreamEvents(`${options.redisConfig.prefix}-stream-${allowedEvents[funcName].listenFor[j]}`);
+
+          await initializeStorage(`${options.redisConfig.prefix}-stream-${allowedEvents[funcName].listenFor[j]}`);
         }
         for (let j = 0; j < allowedEvents[funcName].listenFor.length; j += 1) {
           const evtListener = new EventEmitter();
@@ -167,10 +177,9 @@ const clockwork = (options: ClockWorkOptions) => {
           evt.stored = true;
           await send(allowedEvents[funcName].outputPayloadType, evt);
         }
-        ////What to do in state change????
-        // if (allowedEvents[funcName].stateChange) {
-        //   await allowedEvents[funcName].stateChange(evt);
-        // }
+        if (allowedEvents[funcName].stateChange) {
+          await allowedEvents[funcName].stateChange(evt);
+        }
       }
     } catch (e) {
       log.error('Error in process', e);
