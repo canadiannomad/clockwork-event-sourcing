@@ -13,12 +13,12 @@ const promisify = util.promisify;
 
 let client: ioredis;
 
-const redisConnect = (host: string, password: string, port:number = 6379) => {
+const redisConnect = (host: string, password: string, port = 6379) => {
   return new Promise((resolve) => {
     const config: any = {
-          host,
-          port: 6379,
-        };
+      host,
+      port: 6379,
+    };
     if (password) {
       config.password = password;
       config.tls = {
@@ -98,4 +98,5 @@ export default {
   xrange: redisClient('xrange'),
   xrevrange: redisClient('xrevrange'),
   eval: redisClient('eval'),
+  incr: redisClient('incr'),
 };

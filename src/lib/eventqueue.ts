@@ -48,7 +48,7 @@ const clockwork = (options: ClockWorkOptions) => {
    * @param {any}  events - The events array.
    */
   const initializeStorage = async (stream): Promise<void> => {
-    await storage.getStreamEvents(stream);
+    await storage.getEvents(stream);
   };
 
   /**
@@ -86,7 +86,7 @@ const clockwork = (options: ClockWorkOptions) => {
           const evtListener = new EventEmitter();
           setInterval(async () => {
             let response = [];
-            let streamName = `${options.redisConfig.prefix}-stream-${allowedEvents[funcName].listenFor[j]}`;
+            const streamName = `${options.redisConfig.prefix}-stream-${allowedEvents[funcName].listenFor[j]}`;
             try {
               response = await redis.xreadgroup(
                 'GROUP',
@@ -169,10 +169,10 @@ const clockwork = (options: ClockWorkOptions) => {
       log.info(`Received message on queue '${funcName}'`);
       evt.hops += 1;
 
-      const evtRequest: Event<any> | null = await allowedEvents[funcName].handler(evt);
+      await allowedEvents[funcName].handler(evt);
+      
       if (allowedEvents[funcName].outputPayloadType) {
-        
-        if(!evt.stored){
+        if (!evt.stored) {
           log.info('Storing Event', { evt });
           evt.stored = true;
           await send(allowedEvents[funcName].outputPayloadType, evt);

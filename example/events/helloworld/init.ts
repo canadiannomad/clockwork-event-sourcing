@@ -9,8 +9,7 @@
  */
 import { Event } from '../../../src/lib/types';
 import redis from '../../../src/redis';
-import {PayloadHTTP, Request} from '../../types';
-import ping from '../../states/ping';
+import { PayloadHTTP, Request } from '../../types';
 
 /**
   This array contains the type of events we are listening for
@@ -44,8 +43,15 @@ const handler = async (evt: Event<PayloadHTTP>): Promise<any> => {
 };
 
 const outputPayloadType = ['PayloadHTTP'];
-const stateChange = () => {
-  ping.counter += 1;
+
+const stateChange = async () => {
+  const stateKey = `hello-world-state`;
+  let state = await redis.get(stateKey);
+  if (state != null) {
+    await redis.incr(stateKey);
+  } else {
+    await redis.set(stateKey, 0);
+  }
 };
 
 /**
@@ -55,7 +61,7 @@ const stateChange = () => {
  */
 const allowedFunctions = (): Record<string, unknown> => {
   return {
-    helloworld: { listenFor, handler, outputPayloadType},
+    helloworld: { listenFor, handler, outputPayloadType, stateChange },
   };
 };
 

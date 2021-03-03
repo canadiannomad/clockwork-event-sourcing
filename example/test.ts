@@ -7,7 +7,7 @@ import * as events from './events';
 
 const log = logger('Integration Tests');
 const options: ClockWorkOptions = {
-  s3Bucket: 'yourbucketname',
+  s3Bucket: 'mapreducelambda',
   testMode: true,
   events,
   redisConfig: {

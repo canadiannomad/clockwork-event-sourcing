@@ -2,11 +2,11 @@ import { ClockWorkOptions } from './types';
 
 let queueOptions: ClockWorkOptions;
 
-let getConfiguration = (): ClockWorkOptions => {
+const getConfiguration = (): ClockWorkOptions => {
   return queueOptions;
 };
 
-let setConfiguration = (options: ClockWorkOptions): void => {
+const setConfiguration = (options: ClockWorkOptions): void => {
   queueOptions = options;
 };
 

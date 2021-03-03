@@ -40,7 +40,7 @@ const saveJsonFile = async (name: string, content: string): Promise<any> => {
  */
 const getJsonFile = async (name: string): Promise<any> => {
   const bucket = config.getConfiguration().s3Bucket;
-  var request: S3.GetObjectRequest = {
+  const request: S3.GetObjectRequest = {
     Bucket: bucket,
     Key: name,
   };
@@ -48,7 +48,7 @@ const getJsonFile = async (name: string): Promise<any> => {
   try {
     const retVal = await s3.getObject(request).promise();
     const data = retVal.Body.toString('utf-8');
-    log.info('Got file:', { name});
+    log.info('Got file:', { name });
     return JSON.parse(data as any);
   } catch (e) {
     log.info('Failed to get the file:', { name, e });
@@ -66,23 +66,23 @@ const listFiles = async (folder: string, continuationToken: string = null) => {
   try {
     let result = [];
     const bucket = config.getConfiguration().s3Bucket;
-    var request = {
+    const request = {
       Bucket: bucket,
       Prefix: `${folder}/`,
-      ContinuationToken: continuationToken
+      ContinuationToken: continuationToken,
     };
 
     log.info(`Getting files from ${folder}, ${continuationToken}`, bucket);
 
     const retVal = await s3.listObjectsV2(request).promise();
     if (retVal.Contents?.length > 0) {
-      let files = retVal.Contents.map((file) => {
+      const files = retVal.Contents.map((file) => {
         return file.Key.replace(`${folder}/`, '');
       });
       result = result.concat(files);
     }
     if (retVal?.IsTruncated) {
-      var recursiveFilesResponse = await listFiles(folder, retVal.NextContinuationToken);
+      const recursiveFilesResponse = await listFiles(folder, retVal.NextContinuationToken);
       if (recursiveFilesResponse?.length > 0) {
         result = result.concat(recursiveFilesResponse);
       }
