@@ -29,8 +29,7 @@ const saveJsonFile = async (name: string, content: string): Promise<any> => {
     }
   } catch (e) {
     log.info('Failed to save the file:', { name, e });
-    process.exit(1);
-    return e;
+    throw e;
   }
 };
 
@@ -53,7 +52,7 @@ const getJsonFile = async (name: string): Promise<any> => {
     return JSON.parse(data as any);
   } catch (e) {
     log.info('Failed to get the file:', { name, e });
-    return e;
+    throw e;
   }
 };
 
@@ -94,7 +93,7 @@ const listFiles = async (folder: string, continuationToken: string = null) => {
     return result;
   } catch (e) {
     log.error(`Failed to get the folder content: ${folder}`, { e });
-    return e;
+    throw e;
   }
 };
 
