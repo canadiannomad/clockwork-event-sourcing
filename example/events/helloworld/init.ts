@@ -24,7 +24,7 @@ const listenFor = ['PayloadHTTP'];
 const handler = async (evt: Event<PayloadHTTP>): Promise<any> => {
   const input = evt.payload as PayloadHTTP;
   if (input.call != 'helloworld') {
-    return;
+    return null;
   }
   const requestId = input.requestId;
   const requestKey = `hello-world-async-${requestId}`;
@@ -39,7 +39,7 @@ const handler = async (evt: Event<PayloadHTTP>): Promise<any> => {
   };
   await redis.set(`${requestKey}`, JSON.stringify(request), 'EX', 20);
 
-  return Promise.resolve();
+  return request.output;
 };
 
 const outputPayloadType = ['PayloadHTTP'];
@@ -50,7 +50,7 @@ const stateChange = async () => {
   if (state != null) {
     await redis.incr(stateKey);
   } else {
-    await redis.set(stateKey, 0);
+    await redis.set(stateKey, 1);
   }
 };
 

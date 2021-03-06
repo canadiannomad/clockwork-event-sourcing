@@ -87,9 +87,6 @@ const listFiles = async (folder: string, continuationToken: string = null) => {
         result = result.concat(recursiveFilesResponse);
       }
     }
-    if (!continuationToken) {
-      result.shift(); //remove first item is folder name
-    }
     return result;
   } catch (e) {
     log.error(`Failed to get the folder content: ${folder}`, { e });

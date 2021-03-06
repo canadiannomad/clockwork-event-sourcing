@@ -54,7 +54,6 @@ const clockwork = (options: ClockWorkOptions) => {
   /**
    * This function initializes the event queues.
    * Each second will be reading events from the stream group if any.
-   * Will be limited to get up to five events each time.
    * @param {any}  events - The events array.
    */
   const initializeQueues = async (evts): Promise<void> => {
@@ -63,6 +62,7 @@ const clockwork = (options: ClockWorkOptions) => {
     for (let i = 0; i < allowedEventsNames.length; i += 1) {
       const funcName = allowedEventsNames[i];
       const evtListeners: EventEmitter[] = [];
+
       if (allowedEvents[funcName].listenFor) {
         log.info('Allowed Events ListenFor', { listenFor: allowedEvents[funcName].listenFor });
         for (let j = 0; j < allowedEvents[funcName].listenFor.length; j += 1) {
@@ -79,7 +79,6 @@ const clockwork = (options: ClockWorkOptions) => {
             // log.info(`Failed add ${allowedEvents[funcName].listenFor[j]}`, e);
             // Do nothing.  Group already exists.
           }
-
           await initializeStorage(`${options.redisConfig.prefix}-stream-${allowedEvents[funcName].listenFor[j]}`);
         }
         for (let j = 0; j < allowedEvents[funcName].listenFor.length; j += 1) {
@@ -95,7 +94,7 @@ const clockwork = (options: ClockWorkOptions) => {
                 //'BLOCK',
                 //'0',
                 'COUNT',
-                '5',
+                '1',
                 'STREAMS',
                 streamName,
                 '>',
@@ -169,17 +168,19 @@ const clockwork = (options: ClockWorkOptions) => {
       log.info(`Received message on queue '${funcName}'`);
       evt.hops += 1;
 
-      await allowedEvents[funcName].handler(evt);
+      var result = await allowedEvents[funcName].handler(evt);
       
-      if (allowedEvents[funcName].outputPayloadType) {
+      if (result != null && allowedEvents[funcName].outputPayloadType) {
         if (!evt.stored) {
           log.info('Storing Event', { evt });
           evt.stored = true;
           await send(allowedEvents[funcName].outputPayloadType, evt);
         }
         if (allowedEvents[funcName].stateChange) {
+          log.info('Update State', { funcName, evt });
           await allowedEvents[funcName].stateChange(evt);
         }
+
       }
     } catch (e) {
       log.error('Error in process', e);
