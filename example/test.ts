@@ -1,18 +1,18 @@
-import 'source-map-support/register';
 import { v1 as uuidv1 } from 'uuid';
-import {ClockWorkOptions } from '../src/lib/types';
-import { Event, EventDirection, PayloadHTTP, PayloadHTTPMethod } from '../src/lib/types';
+import { Event, EventDirection, ClockWorkOptions} from '../src/lib/types';
+import {PayloadHTTP, Request, PayloadHTTPMethod} from './types'
 import ClockWork from '../src';
-import logger from '../src/lib/logger';
+import logger from '../src/logger';
 import * as events from './events';
 
 const log = logger('Integration Tests');
 const options: ClockWorkOptions = {
-  s3Bucket: 'yourbucketname',
+  s3Bucket: 'mapreducelambda',
   testMode: true,
   events,
   redisConfig: {
     host: '127.0.0.1',
+    prefix: 'test-clockwork'
   }
 };
 const cw = ClockWork(options);
@@ -66,10 +66,12 @@ const testHTTPRequest = async () => {
     hops: 1,
     cost: '0.00',
     rawPayload: {},
-    payload,
+    payload
   };
   
-  await cw.send('PayloadHTTP', evt);
+  var response =  await cw.send('PayloadHTTP', evt);
+  console.log(`send event`, evt);
+  
 };
 
 init();

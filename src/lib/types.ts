@@ -11,6 +11,7 @@ export interface RedisConfig {
   host: string;
   password?: string;
   port?: number;
+  prefix: string;
 }
 
 export enum EventDirection {
@@ -18,30 +19,7 @@ export enum EventDirection {
   Outgoing = 'OUTGOING',
 }
 
-export enum PayloadHTTPMethod {
-  Get = 'GET',
-  Post = 'POST',
-}
-
-export interface Payload {
-  payloadType: string;
-  payloadVersion: string;
-}
-
-export interface PayloadHTTP extends Payload {
-  requestId: string;
-  method: PayloadHTTPMethod;
-  validatedUser?: string;
-  path: string;
-  call?: string;
-  parameters: any;
-  body: any;
-}
-
-export interface StateExample {
-  example: string[];
-}
-export interface Event<T extends Payload> {
+export interface Event<T> {
   direction: EventDirection;
   source: string;
   sourceVersion: string;
@@ -50,8 +28,5 @@ export interface Event<T extends Payload> {
   cost: string;
   rawPayload: any;
   payload: T;
-}
-
-export interface Request {
-  output: any;
+  stored?: boolean;
 }

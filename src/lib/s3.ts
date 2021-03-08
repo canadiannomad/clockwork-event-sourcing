@@ -29,8 +29,7 @@ const saveJsonFile = async (name: string, content: string): Promise<any> => {
     }
   } catch (e) {
     log.info('Failed to save the file:', { name, e });
-    process.exit(1);
-    return e;
+    throw e;
   }
 };
 
@@ -41,19 +40,58 @@ const saveJsonFile = async (name: string, content: string): Promise<any> => {
  */
 const getJsonFile = async (name: string): Promise<any> => {
   const bucket = config.getConfiguration().s3Bucket;
-  var request: S3.GetObjectRequest = {
+  const request: S3.GetObjectRequest = {
     Bucket: bucket,
     Key: name,
   };
 
   try {
     const retVal = await s3.getObject(request).promise();
+    const data = retVal.Body.toString('utf-8');
     log.info('Got file:', { name });
-    return JSON.parse(retVal as any);
+    return JSON.parse(data as any);
   } catch (e) {
     log.info('Failed to get the file:', { name, e });
-    return e;
+    throw e;
   }
 };
 
-export default { saveJsonFile, getJsonFile };
+/**
+ * Returns the file list on a folder.
+ * @param {string}  folder - The folder name.
+ * @param {string}  continuationToken - The continuation token.
+ * @return {Promise<any>} Promise that returns the folder files list.
+ */
+const listFiles = async (folder: string, continuationToken: string = null) => {
+  try {
+    let result = [];
+    const bucket = config.getConfiguration().s3Bucket;
+    const request = {
+      Bucket: bucket,
+      Prefix: `${folder}/`,
+      ContinuationToken: continuationToken,
+    };
+
+    log.info(`Getting files from ${folder}, ${continuationToken}`, bucket);
+
+    const retVal = await s3.listObjectsV2(request).promise();
+    if (retVal.Contents?.length > 0) {
+      const files = retVal.Contents.map((file) => {
+        return file.Key.replace(`${folder}/`, '');
+      });
+      result = result.concat(files);
+    }
+    if (retVal?.IsTruncated) {
+      const recursiveFilesResponse = await listFiles(folder, retVal.NextContinuationToken);
+      if (recursiveFilesResponse?.length > 0) {
+        result = result.concat(recursiveFilesResponse);
+      }
+    }
+    return result;
+  } catch (e) {
+    log.error(`Failed to get the folder content: ${folder}`, { e });
+    throw e;
+  }
+};
+
+export default { saveJsonFile, getJsonFile, listFiles };

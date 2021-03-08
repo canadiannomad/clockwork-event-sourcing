@@ -7,10 +7,9 @@
  * State Changes: Updates Async Request with Output
  * Next: None
  */
-import { Event, PayloadHTTP, Request } from '../../../src/lib/types';
-import redis from '../../../src/lib/redis';
-import s3 from '../../../src/lib/s3';
-import 'source-map-support/register';
+import { Event } from '../../../src/lib/types';
+import redis from '../../../src/redis';
+import { PayloadHTTP, Request } from '../../types';
 
 /**
   This array contains the type of events we are listening for
@@ -25,12 +24,12 @@ const listenFor = ['PayloadHTTP'];
 const handler = async (evt: Event<PayloadHTTP>): Promise<any> => {
   const input = evt.payload as PayloadHTTP;
   if (input.call != 'helloworld') {
-    return;
+    return null;
   }
   const requestId = input.requestId;
-  const requestKey = `minevtsrc-async-${requestId}`;
-  let request = JSON.parse(await redis.get(requestKey)) || {} as Request;
-  
+  const requestKey = `hello-world-async-${requestId}`;
+  let request = JSON.parse(await redis.get(requestKey)) || ({} as Request);
+
   request.output = {
     body: 'Hello World',
     headers: {
@@ -39,10 +38,20 @@ const handler = async (evt: Event<PayloadHTTP>): Promise<any> => {
     statusCode: 200,
   };
   await redis.set(`${requestKey}`, JSON.stringify(request), 'EX', 20);
-  await s3.saveJsonFile(requestKey, request);
 
+  return request.output;
+};
 
-  return Promise.resolve();
+const outputPayloadType = ['PayloadHTTP'];
+
+const stateChange = async () => {
+  const stateKey = `hello-world-state`;
+  let state = await redis.get(stateKey);
+  if (state != null) {
+    await redis.incr(stateKey);
+  } else {
+    await redis.set(stateKey, 1);
+  }
 };
 
 /**
@@ -52,9 +61,8 @@ const handler = async (evt: Event<PayloadHTTP>): Promise<any> => {
  */
 const allowedFunctions = (): Record<string, unknown> => {
   return {
-    helloworld: { listenFor, handler },
+    helloworld: { listenFor, handler, outputPayloadType, stateChange },
   };
 };
 
 export { allowedFunctions };
-
