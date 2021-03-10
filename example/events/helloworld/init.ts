@@ -11,6 +11,8 @@ import { Event } from '../../../src/lib/types';
 import redis from '../../../src/redis';
 import { PayloadHTTP, Request } from '../../types';
 
+const stateKey = `hello-world-state`;
+
 /**
   This array contains the type of events we are listening for
 */
@@ -27,13 +29,17 @@ const handler = async (evt: Event<PayloadHTTP>): Promise<any> => {
     return null;
   }
   const requestId = input.requestId;
-  const requestKey = `hello-world-async-${requestId}`;
+  const requestKey = `${input.call}-${requestId}`;
   let request = JSON.parse(await redis.get(requestKey)) || ({} as Request);
+  let helloWorldState = await redis.get(stateKey) || 0;
 
   request.output = {
-    body: 'Hello World',
+    body: {
+      message: "Hello World",
+      helloWorldState
+    },
     headers: {
-      'Content-Type': 'text/html',
+      'Content-Type': 'text/json',
     },
     statusCode: 200,
   };
@@ -45,7 +51,6 @@ const handler = async (evt: Event<PayloadHTTP>): Promise<any> => {
 const outputPayloadType = ['PayloadHTTP'];
 
 const stateChange = async () => {
-  const stateKey = `hello-world-state`;
   let state = await redis.get(stateKey);
   if (state != null) {
     await redis.incr(stateKey);

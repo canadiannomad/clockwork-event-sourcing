@@ -10,7 +10,8 @@ const addEvent = async (stream, event): Promise<any> => {
   event.stored = true;
   const id = await redisAdd(event, stream);
   log.info(`Adding event to S3: events/${stream}/${id}`);
-  return await s3.saveJsonFile(`events/${stream}/${id}`, event);
+  await s3.saveJsonFile(`events/${stream}/${id}`, event);
+  return event;
 };
 
 const redisAdd = async (event, stream, key = '*'): Promise<any> => {
