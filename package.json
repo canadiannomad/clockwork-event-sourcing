@@ -1,13 +1,13 @@
 {
-  "name": "clockwork",
-  "version": "1.0.0",
+  "name": "@canadiannomad/clockwork",
+  "version": "0.0.1",
   "description": "Minimal NodeJS(TypeScript) + Redis Event Sourcing Framework",
   "main": "built/init.js",
   "author": "Kyle Jones <kyle@canadiannomad.com>",
   "homepage": "https://github.com/canadiannomad/clockwork-event-sourcing/issues",
   "url": "https://github.com/canadiannomad/clockwork-event-sourcing",
   "email": "kyle@canadiannomad.com",
-  "license": "LicenseRef-LICENSE",
+  "license": "SEE LICENSE IN \"LICENSE\"",
   "private": false,
   "scripts": {
     "start": "bash bin/build.sh && bash bin/start.sh",
@@ -39,5 +39,16 @@
     "typescript": "^3.9.7",
     "webpack": "^4.44.1",
     "webpack-cli": "^3.3.12"
+  },
+  "directories": {
+    "doc": "docs",
+    "example": "example"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/canadiannomad/clockwork-event-sourcing.git"
+  },
+  "bugs": {
+    "url": "https://github.com/canadiannomad/clockwork-event-sourcing/issues"
   }
 }
