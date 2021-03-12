@@ -1,6 +1,6 @@
 import { v1 as uuidv1 } from 'uuid';
-import { Event, EventDirection, ClockWorkOptions} from '../src/lib/types';
-import {PayloadHTTP, Request, PayloadHTTPMethod} from './types'
+import { Event, EventDirection, ClockWorkOptions, PayloadHTTPMethod} from '../src/lib/types';
+import {PayloadHTTP, Request} from './types'
 import ClockWork from '../src';
 import logger from '../src/logger';
 import * as events from './events';

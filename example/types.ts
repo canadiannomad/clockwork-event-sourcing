@@ -1,7 +1,4 @@
-export enum PayloadHTTPMethod {
-  Get = 'GET',
-  Post = 'POST',
-}
+import { PayloadHTTPMethod } from '../src/lib/types';
 
 export interface Payload {
   payloadType: string;
@@ -17,7 +14,6 @@ export interface PayloadHTTP extends Payload {
   parameters: any;
   body: any;
 }
-
 
 export interface Request {
   output: any;

@@ -151,9 +151,9 @@ const clockwork = (options: ClockWorkOptions) => {
    * This function sends event data to the events queue.
    * @param {string}  outputPayloadType - The output payload type.
    * @param {Event<any>}  event - The event.
-   * @return {Promise<any>} A redis promise.
+   * @return {Promise<any>} A promise.
    */
-  const send = async (outputPayloadType: string, event: Event<any>): Promise<string> => {
+  const send = async (outputPayloadType: string, event: Event<any>): Promise<any> => {
     return await storage.addEvent(`${options.redisConfig.prefix}-stream-${outputPayloadType}`, event);
   };
 

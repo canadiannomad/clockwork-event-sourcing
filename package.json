@@ -10,7 +10,7 @@
   "license": "LicenseRef-LICENSE",
   "private": false,
   "scripts": {
-    "start": "bash bin/build.sh && bash bin/start.sh",
+    "start": "bash bin/build.sh && start http://localhost:5000 && bash bin/start.sh",
     "test": "bash bin/test.sh",
     "lint": "bash bin/lint.sh",
     "build": "bash bin/build.sh",

@@ -30,3 +30,9 @@ export interface Event<T> {
   payload: T;
   stored?: boolean;
 }
+
+export enum PayloadHTTPMethod {
+  Get = 'GET',
+  Post = 'POST',
+}
+
