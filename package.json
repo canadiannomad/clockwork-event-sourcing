@@ -1,5 +1,5 @@
 {
-  "name": "@canadiannomad/clockwork",
+  "name": "clockwork",
   "version": "0.0.1",
   "description": "Minimal NodeJS(TypeScript) + Redis Event Sourcing Framework",
   "main": "built/init.js",
