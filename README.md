@@ -1,4 +1,5 @@
 <!-- PROJECT SHIELDS -->
+
 <!--
 *** Markdown "reference style" links used for readability.
 *** Reference links are enclosed in brackets [ ] instead of parentheses ( ).
@@ -6,16 +7,16 @@
 *** for contributors-url, forks-url, etc. This is an optional, concise syntax you may use.
 *** https://www.markdownguide.org/basic-syntax/#reference-style-links
 -->
+
 [![Contributors][contributors-shield]][contributors-url]
 [![MIT License][license-shield]][license-url]
 
-
-
 <!-- PROJECT LOGO -->
+
 <br />
 <p align="center">
   <a href="/">
-    <img src="docs/images/logo.png" alt="Logo" width="80" height="80">
+    <img src="docs/images/logo.jpg" alt="Logo" width="100" height="66">
   </a>
 
   <h3 align="center">Clockwork Event Source Framework</h3>
@@ -33,6 +34,7 @@
 </p>
 
 <!-- TABLE OF CONTENTS -->
+
 <details open="open">
   <summary>Table of Contents</summary>
   <ul style="list-style-type:none">
@@ -45,11 +47,10 @@
     <li>
       <a href="#getting-started">Getting Started</a>
       <ul style="list-style-type:none">
-        <li><a href="#prerequisites">Prerequisites</a></li>
         <li><a href="#installation">Installation</a></li>
       </ul>
     </li>
-    <li><a href="#usage">Usage</a></li>
+    <li><a href="/docs/index.md">Examples</a></li>
     <li><a href="#roadmap">Roadmap</a></li>
     <li><a href="#contributing">Contributing</a></li>
     <li><a href="#license">License</a></li>
@@ -59,116 +60,77 @@
 </details>
 
 <!-- ABOUT THE PROJECT -->
+
 ## About The Project
 
-![Product Name Screen Shot](https://via.placeholder.com/650x100)
-
-MinEvtSrc is a minimalist event-driven framework that solves many wonderful problems.
-
-The main reasons for using MinEvtSrc:
-* Don't sweat the small stuff.  Go straight to building your amazing idea.
-* Easy to set up/configure
+Clockwork is a minimalist event-driven framework that manages event queues and listeners using Redis and S3.
 
 Thanks to all of our contributors' hard work and dedication!
 
 ### Built With
 
-* [AWS SQS](https://aws.amazon.com)
-* [AWS Lambda](https://aws.amazon.com)
-* [NodeJS (version?)](https://nodejs.org)
-* [TypeScript (version?)](https://typescriptlang.org)
-* [Docker](https://www.docker.com/)
-
-
+-   [AWS S3](https://aws.amazon.com)
+-   [Redis](https://redis.io)
+-   [NodeJS](https://nodejs.org)
+-   [TypeScript](https://typescriptlang.org)
 
 <!-- GETTING STARTED -->
+
 ## Getting Started
 
 To get a local copy up and running follow these simple example steps.
 
-### Prerequisites
-
-You will need to install NodeJS and have an active Docker account.
-* npm
-  ```sh
-  npm install npm@latest -g
-  ```
-* docker
-```sh
-docker run -d -p 80:80 docker/getting-started
-```
-
 ### Installation
 
-1. Clone the repo
-   ```sh
-   git clone https://github.com/canadiannomad/clockwork-event-sourcing.git
-   ```
-2. Install NPM packages
-   ```sh
-   npm install
-   ```
-3. More steps for setup
-   ```sh
-   complete
-   ```
+You will need to install NodeJS and npm.
 
-
-
-<!-- USAGE EXAMPLES -->
-## Usage
-
-Example application creation
-
-_For more examples, please refer to the [Documentation](docs/index.md)_
-
-
+-   Install package
+    ```sh
+    npm install clockwork-event-sourcing@latest -g
+    ```
 
 <!-- ROADMAP -->
+
 ## Roadmap
 
 See the [open issues](https://github.com/canadiannomad/clockwork-event-sourcing/issues) for a list of proposed features (and known issues).
 
 <!-- CONTRIBUTING -->
+
 ## Contributing
 
 Contributions are what make the open source community such an amazing place to be learn, inspire, and create. Any contributions you make are **greatly appreciated**.
 
-1. Fork the Project
-2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the Branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-
+1.  Fork the Project
+2.  Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
+3.  Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
+4.  Push to the Branch (`git push origin feature/AmazingFeature`)
+5.  Open a Pull Request
 
 <!-- LICENSE -->
+
 ## License
 
 Distributed under the LGPL 3.0 License. See `LICENSE` for more information.
 
-
-
-<!-- CONTACT -->
-## Contact
-
-Your Name - [@minevtsrc](https://twitter.com/your_username) - minevtsrc@.com
-
-Project Link: [https://github.com/canadiannomad/clockwork-event-sourcing](https://github.com/canadiannomad/clockwork-event-sourcing)
-
-
-
 <!-- ACKNOWLEDGEMENTS -->
+
 ## Acknowledgements
-* [GitHub Emoji Cheat Sheet](https://www.webpagefx.com/tools/emoji-cheat-sheet)
-* [Img Shields](https://shields.io)
 
-
+-   [GitHub Emoji Cheat Sheet](https://www.webpagefx.com/tools/emoji-cheat-sheet)
+-   [Img Shields](https://shields.io)
+-   [Photo by Miguel Á. Padriñán from Pexels](https://www.pexels.com/photo/photo-of-golden-cogwheel-on-black-background-3785935/)
 
 <!-- MARKDOWN LINKS & IMAGES -->
+
 <!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
+
 [contributors-shield]: https://img.shields.io/badge/CONTRIBUTORS-3-blueviolet?style=for-the-badge
+
 [contributors-url]: docs/contributors
+
 [license-shield]: https://img.shields.io/badge/LICENSE-LGPL--3.0-blue?style=for-the-badge
+
 [license-url]: https://github.com/canadiannomad/clockwork-event-sourcing/blob/master/LICENSE.txt
+
 [product-screenshot]: docs/images/screenshot.png
