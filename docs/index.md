@@ -2,16 +2,13 @@
 <br />
 <p align="center">
   <a href="/">
-    <img src="docs/images/logo.png" alt="Logo" width="80" height="80">
+    <img src="images/logo.png" alt="Logo" width="80" height="80">
   </a>
 
   <h3 align="center">Clockwork Event Source Framework</h3>
 
   <p align="center">
     A minimalist NodeJS (TypeScript) + Redis Event Sourcing Framework
-    <br />
-    <a href="docs/index.md"><strong>Explore the docs »</strong></a>
-    <br />
     <br />
     <a href="https://github.com/canadiannomad/clockwork-event-sourcing/issues">Report Bug</a>
     ·
@@ -51,7 +48,7 @@
 
 ## Architecture & Design
 
-<img src="/docs/images/generic_event_diagram.jpg" />
+<img src="/images/generic_event_diagram.jpg" />
 
 If you are completely unfamiliar with event-driven architectures, start by reading the [Wikipedia article](https://en.wikipedia.org/wiki/Event-driven_architecture).
 
@@ -59,7 +56,7 @@ If you are completely unfamiliar with event-driven architectures, start by readi
 
 ### Request & Response
 
-<img src="/docs/images/call_flow.png" style="margin-bottom: 5%;" />
+<img src="/images/call_flow.png" style="margin-bottom: 5%;" />
 
 
 The above diagram gives a high level overview of a single request and response polling. In production, the event queue will managing hundreds of events simultaneously, especially as initial events will trigger secondary events.
