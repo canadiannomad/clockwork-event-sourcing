@@ -23,8 +23,7 @@
     <li>
       <a href="#architecture-and-design">Architecture & Design</a>
       <ul style="list-style-type:none">
-	  	<li><a href="#key-features">Key Features</a></li>
-		<li><a href="#request-and-response">Request & Response</a></li>
+	  	<li><a href="#request-and-response">Request & Response</a></li>
 		<li><a href="#event-types">Event Types</a></li>
 	  	<li><a href="#terminology">Terminology</a></li>
       </ul>
@@ -37,9 +36,6 @@
 		<li><a href="#hello-world">Hello, World!</a></li>
       </ul>
     </li>
-	<li><a href="#testing">Tests & Testing</a></li>
-	<li><a href="#troubleshooting">Troubleshooting</a></li>
-    <li><a href="#roadmap">Roadmap</a></li>
 	<li><a href="#contributing">Contributing</a></li>
 	<li><a href="../code-of-conduct.md">Code of Conduct</a></li>
 	<li><a href="#license">License</a></li>
@@ -52,8 +48,6 @@
 
 If you are completely unfamiliar with event-driven architectures, start by reading the [Wikipedia article](https://en.wikipedia.org/wiki/Event-driven_architecture).
 
-### Key Features
-
 ### Request & Response
 
 <img src="/images/call_flow.png" style="margin-bottom: 5%;" />
@@ -64,18 +58,14 @@ The above diagram gives a high level overview of a single request and response p
 #### Request
 A request is a JSON object comprising the raw server request envelope including webserver headers as well as a sanitized envelope of the request body.
 
-***@TODO*** Add example request with required JSON keys
-
 The event queue assigns a [UUID](https://en.wikipedia.org/wiki/Universally_unique_identifier) for every request and returns this UUID immediately to the client so that the client can poll for the event completion. This UUID is used in every phase of the request and response to ensure threaded responses. UUIDs are unique across all event queues and types.  Once the request has been put in queue as a pending event, the event is stored in [Redis](https://en.wikipedia.org/wiki/Redis) for immediate processing as well as S3 for event backup and replay. At this point, the event queue waits for a listener to request the event and then waits for the acknowledgement of the event completion from the listener.
 
-The event listener then accepts the request with its JSON envelope and processes the event accordingly. The event listener may, and likely will, trigger cascade events. For example, if you trigger an event to update a user's password, you will probably want to send the user an email letting them know it was changed as part of your security policy. The event for ```update_password``` would then trigger the event for ```send_email``` which would have its own separate event flow and event listener. **_How will cascade events report back to an event listener?_**
+The event listener then accepts the request with its JSON envelope and processes the event accordingly. The event listener may, and likely will, trigger cascade events. For example, if you trigger an event to update a user's password, you will probably want to send the user an email letting them know it was changed as part of your security policy. The event for ```update_password``` would then trigger the event for ```send_email``` which would have its own separate event flow and event listener.
 
 When the event listener has processed the event and its cascade events, it reports completion to the event queue with a response envelope.
 
 #### Response
 A response is a JSON object with the status of the event and any output or error messages.
-
-***@TODO*** Add example responses with various error and success scenarios
 
 A response has an acknowledgement and a response envelope with appropriate messages. In other words, an acknowledgement is merely the position of the event in the event workflow _which is separate from the event's success_. An event has an acknowledgement of its position as well as its success status, either success or fail.
 
@@ -103,6 +93,12 @@ Event types are part of the event envelope and are carried with the event UUID f
 
 ### Setup
 
+Each event listener consists of a set of functions that listen for and handle certain types of events. Each listener is responsible for its own state storage.
+
+For example, when an “HTTP Ping” listener gets triggered by the “HTTP” Event the filterEvents function should return true if the URL path is “/ping/{value}” and false otherwise. The handleStateUpdate may log the request in the data sore, then the handleSideEffects sets the HTTP response to “{value}”.
+
+When a microservice completes, it will emit a new Event that will get stored, and may trigger other microservices.
+
 ### Configuring the Event Queue
 
 ### Creating an Event Listener
@@ -113,26 +109,11 @@ bool filterEvents(Event)
 void handleStateUpdate(Event)
 Event handleSideEffects(Event)
 
-—
-
-Each microservice consists of a set of functions that listen for and handle certain types of events. Each microservice is responsible for its own state storage (Redis or MySQL)
-
-For example you might have a “HTTP Ping” microservice that listens for “HTTP” Events. When it gets triggered by the “HTTP” Event the filterEvents function should return true if the URL path is “/ping/{value}” (and false otherwise). The handleStateUpdate, may log the request in MySQL, then the handleSideEffects might set the HTTP response to “{value}”.
-
-When implementing microservices we need to keep the code that writes to the local state (handleStateUpdate) separate from the code that updates external resources (handleSideEffects). We need to do this because we need to be able to replay the state update code to make sure the local state is up to date with the Source of Truth while not accidentally resending emails, calling 3rd party APIs, etc.
-
-When a microservice completes, it will emit a new Event that will get stored, and may trigger other microservices.
 
 ### Hello, World!
 ```
 example/events/helloworld
 ```
-
-## Roadmap
-
-1. Extensibility
-2. Storing events in something other than S3
-3. Option for data stores other than Redis
 
 ## Contributing
 
@@ -152,6 +133,3 @@ Never made an open source contribution before? Wondering how contributions work 
 12. Wait for the pull request to be reviewed by a maintainer.
 13. Make changes to the pull request if the reviewing maintainer recommends them.
 14. Celebrate your success after your pull request is merged!
-
-### Where can I go for help?
-If you need help, you can ask questions on our mailing list, IRC chat, or **[list any other communication platforms that your project uses]**.
