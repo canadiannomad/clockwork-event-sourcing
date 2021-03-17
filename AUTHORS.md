@@ -3,6 +3,6 @@
 -- https://www.gnu.org/prep/maintain/html_node/Recording-Contributors.html
 
 
-@canadiannomad
-@liwich
-@gstrange
+* @canadiannomad
+* @liwich
+* @gstrange
