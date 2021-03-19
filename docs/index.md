@@ -1,10 +1,9 @@
 <!-- PROJECT LOGO -->
 <br />
 <p align="center">
-  <a href="/">
-    <img src="/images/logo.png" alt="Logo" width="80" height="80">
-  </a>
-
+<a href="/">
+  <img src="./images/logo.jpg" alt="Logo" width="100" height="66">
+</a>
   <h3 align="center">Clockwork Event Source Framework</h3>
 
   <p align="center">
@@ -18,39 +17,40 @@
 
 <!-- TABLE OF CONTENTS -->
 <details open="open">
-  <summary>Table of Contents</summary>
-  <ul style="list-style-type:none;">
-    <li>
-      <a href="#architecture-and-design">Architecture & Design</a>
-      <ul style="list-style-type:none">
-	  	<li><a href="#request-and-response">Request & Response</a></li>
-		<li><a href="#event-types">Event Types</a></li>
-	  	<li><a href="#terminology">Terminology</a></li>
-      </ul>
-    </li>
-    <li>
-      Getting Started
-      <ul style="list-style-type:none">
-		<li><a href="#installation">Installation</a></li>
-		<li><a href="#configuring-the-event-queue">Configuring the Event Queue</a></li>
-		<li><a href="#hello-world">Hello, World!</a></li>
-      </ul>
-    </li>
-	<li><a href="#contributing">Contributing</a></li>
-	<li><a href="../code-of-conduct.md">Code of Conduct</a></li>
-	<li><a href="#license">License</a></li>
-  </ul>
+	<summary>Table of Contents</summary>
+	<ul style="list-style-type:none;">
+		<li>
+			<a href="#architecture-and-design">Architecture & Design</a>
+			<ul style="list-style-type:none">
+				<li><a href="#request-and-response">Request & Response</a></li>
+				<li><a href="#event-types">Event Types</a></li>
+				<li><a href="#event-statuses">Event Statuses</a></li>
+				<li><a href="#terminology">Terminology</a></li>
+			</ul>
+		</li>
+		<li>
+			<a href="#setup">Setup</a>
+			<ul style="list-style-type:none">
+				<li><a href="#event-queue">Event Queue</a></li>
+				<li><a href="#event-listener">Event Listener</a></li>
+				<li><a href="#hello-world">Hello, World!</a></li>
+			</ul>
+		</li>
+		<li><a href="#contributing">Contributing</a></li>
+		<li><a href="../code-of-conduct.md">Code of Conduct</a></li>
+		<li><a href="#license">License</a></li>
+	</ul>
 </details>
 
 ## Architecture & Design
 
-<img src="/images/generic_event_diagram.jpg" />
+<img src="./images/generic_event_diagram.jpg" />
 
 If you are completely unfamiliar with event-driven architectures, start by reading the [Wikipedia article](https://en.wikipedia.org/wiki/Event-driven_architecture).
 
 ### Request & Response
 
-<img src="/images/call_flow.png" style="margin-bottom: 5%;" />
+<img src="./images/call_flow.png" style="margin-bottom: 5%;" />
 
 
 The above diagram gives a high level overview of a single request and response polling. In production, the event queue will managing hundreds of events simultaneously, especially as initial events will trigger secondary events.
@@ -69,50 +69,50 @@ A response is a JSON object with the status of the event and any output or error
 
 A response has an acknowledgement and a response envelope with appropriate messages. In other words, an acknowledgement is merely the position of the event in the event workflow _which is separate from the event's success_. An event has an acknowledgement of its position as well as its success status, either success or fail.
 
-#### Event Acknowledgements (Statuses)
+### Event Types
+Event types are part of the event envelope and are carried with the event UUID for event context. You must create at least one event listener for every event type. A type can be any valid string.  Event types must be unique.
+
+### Event Statuses
 1. **Pending** - When an event is first sent to the queue, it has a status of Pending until the listener has received the event for processing.
 2. **In Process** - When the event listener receives the event, the event queue acknowledges that the event is in process.
 3. **Complete** - When the event listener has terminated and informed the queue of the event disposition, the event queue acknowledges the event is complete and creates the response envelope with any error or success messages from the listener.
 
-#### Terminology
+### Terminology
 1. **Client** - any programmatic client such as a web browser or API endpoint.
 2. **Event Queue** - [A FIFO queue](https://en.wikipedia.org/wiki/FIFO_(computing_and_electronics) of events with payloads and acknowledgements (statuses). The event queue is a type of data lake that is queried asynchronously by a client.
 3. **Event Listener** - A block of code that polls the event queue for events with the desired type and executes the appropriate actions for the event, including firing other events.
 4. **Event Type** - Custom-made event triggers that a listener would use as a key to poll the event queue for associated events.
 5. **Acknowledgement** - Essentially, an event status of its position in the  call flow. Because the event queue is the event reporter, it must acknowledge the event's position in the call flow in order to respond to the client poll for event completion.
 
-### Event Types
-Event types are part of the event envelope and are carried with the event UUID for event context. You must create at least one event listener for every event type. A type can be any valid string.  Event types must be unique.
+## Setup
 
-## Installation
+### Event Queue
 
-### Minimum Requirements
-
-* [Redis](https://en.wikipedia.org/wiki/Redis) >= 5.0 for the [streams](https://redis.io/topics/streams-intro)
-* [NodeJS](https://nodejs.org/) >= 14.0
-
-### Setup
+### Event Listener
 
 Each event listener consists of a set of functions that listen for and handle certain types of events. Each listener is responsible for its own state storage.
 
 For example, when an “HTTP Ping” listener gets triggered by the “HTTP” Event the filterEvents function should return true if the URL path is “/ping/{value}” and false otherwise. The handleStateUpdate may log the request in the data sore, then the handleSideEffects sets the HTTP response to “{value}”.
 
-When a microservice completes, it will emit a new Event that will get stored, and may trigger other microservices.
+When a listener completes, it will emit a new Event that will get stored, and may trigger other listeners.
 
-### Configuring the Event Queue
+#### Minimum Listener
 
-### Creating an Event Listener
+Event listeners should have these functions for minimum interaction with the queue.
 
-Functions that event listeners should implement:
-
-bool filterEvents(Event)
-void handleStateUpdate(Event)
-Event handleSideEffects(Event)
+* bool filterEvents(Event)
+* void handleStateUpdate(Event)
+* Event handleSideEffects(Event)
 
 
 ### Hello, World!
-```
-example/events/helloworld
+
+A sample application has been provided in . After installing ```clockwork-event-sourcing```, then follow these steps.
+
+```sh
+> cd example/events/helloworld
+> npm build
+> node index.js
 ```
 
 ## Contributing

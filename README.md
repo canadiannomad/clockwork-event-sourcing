@@ -16,14 +16,12 @@
 <br />
 <p align="center">
   <a href="/">
-    <img src="docs/images/logo.jpg" alt="Logo" width="100" height="66">
+    <img src="./docs/images/logo.jpg" alt="Logo" width="100" height="66">
   </a>
 
   <h3 align="center">Clockwork Event Source Framework</h3>
 
   <p align="center">
-    A minimalist NodeJS (TypeScript) + Redis Event Sourcing Framework
-    <br />
     <a href="docs/index.md"><strong>Explore the docs »</strong></a>
     <br />
     <br />
@@ -33,41 +31,9 @@
   </p>
 </p>
 
-<!-- TABLE OF CONTENTS -->
+Clockwork is a minimalist event sourcing framework that simplifies management of event queues and listeners.
 
-<details open="open">
-  <summary>Table of Contents</summary>
-  <ul style="list-style-type:none">
-    <li>
-      <a href="#about-the-project">About The Project</a>
-      <ul style="list-style-type:none">
-        <li><a href="#built-with">Built With</a></li>
-      </ul>
-    </li>
-    <li>
-      <a href="#getting-started">Getting Started</a>
-      <ul style="list-style-type:none">
-        <li><a href="#installation">Installation</a></li>
-      </ul>
-    </li>
-    <li><a href="/docs/index.md">Examples</a></li>
-    <li><a href="#roadmap">Roadmap</a></li>
-    <li><a href="#contributing">Contributing</a></li>
-    <li><a href="#license">License</a></li>
-    <li><a href="#contact">Contact</a></li>
-    <li><a href="#acknowledgements">Acknowledgements</a></li>
-  </ul>
-</details>
-
-<!-- ABOUT THE PROJECT -->
-
-## About The Project
-
-Clockwork is a minimalist event-driven framework that manages event queues and listeners using Redis and S3.
-
-Thanks to all of our contributors' hard work and dedication!
-
-### Built With
+##### Built With
 
 -   [AWS S3](https://aws.amazon.com)
 -   [Redis](https://redis.io)
@@ -78,17 +44,15 @@ Thanks to all of our contributors' hard work and dedication!
 
 ## Getting Started
 
-To get a local copy up and running follow these simple example steps.
+To install Clockwork, follow these simple example steps.
 
-### Installation
+```sh
+> cd path_to_webroot
+> npm install clockwork-event-sourcing
+> npm build
+```
 
-You will need to install NodeJS and npm.
-
--   Install package
-    ```sh
-    npm install clockwork-event-sourcing@latest -g
-    ```
-
+Because Clockwork uses ES6 syntax, using ```ts-node``` is not supported at this time.
 <!-- ROADMAP -->
 
 ## Roadmap
