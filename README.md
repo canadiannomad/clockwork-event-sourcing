@@ -78,7 +78,7 @@ Contributions are what make the open source community such an amazing place to b
 
 ## License
 
-Distributed under the LGPL 3.0 License. See `LICENSE` for more information.
+Distributed under the LGPL 3.0 License. See `LICENSE.md` for more information.
 
 <!-- ACKNOWLEDGEMENTS -->
 
@@ -98,4 +98,4 @@ Distributed under the LGPL 3.0 License. See `LICENSE` for more information.
 
 [license-shield]: https://img.shields.io/badge/LICENSE-LGPL--3.0-blue?style=for-the-badge
 
-[license-url]: https://github.com/canadiannomad/clockwork-event-sourcing/blob/master/LICENSE
+[license-url]: https://github.com/canadiannomad/clockwork-event-sourcing/blob/master/LICENSE.md

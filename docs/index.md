@@ -37,8 +37,8 @@
 			</ul>
 		</li>
 		<li><a href="#contributing">Contributing</a></li>
-		<li><a href="../code-of-conduct.md">Code of Conduct</a></li>
-		<li><a href="#license">License</a></li>
+		<li><a href="../CODE_OF_CONDUCT.md">Code of Conduct</a></li>
+		<li><a href="../LICENSE.md">License</a></li>
 	</ul>
 </details>
 
