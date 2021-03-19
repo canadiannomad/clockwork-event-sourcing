@@ -7,7 +7,7 @@
   "homepage": "https://github.com/canadiannomad/clockwork-event-sourcing/issues",
   "url": "https://github.com/canadiannomad/clockwork-event-sourcing",
   "email": "kyle@canadiannomad.com",
-  "license": "SEE LICENSE IN \"LICENSE\"",
+  "license": "LGPL-3.0",
   "private": false,
   "scripts": {
     "start": "bash bin/build.sh && start http://localhost:5000 && bash bin/start.sh",
