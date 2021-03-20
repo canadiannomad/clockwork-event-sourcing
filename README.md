@@ -9,7 +9,7 @@
 -->
 
 [![Contributors][contributors-shield]][contributors-url]
-[![MIT License][license-shield]][license-url]
+[![License: LGPL v3][license-shield]][license-url]
 
 <!-- PROJECT LOGO -->
 
@@ -47,9 +47,9 @@ Clockwork is a minimalist event sourcing framework that simplifies management of
 To install Clockwork, follow these simple example steps.
 
 ```sh
-> cd path_to_webroot
-> npm install clockwork-event-sourcing
-> npm build
+$ cd your_project
+$ npm install --save clockwork-event-sourcing
+$ npm build
 ```
 
 Because Clockwork uses ES6 syntax, using ```ts-node``` is not supported at this time.
@@ -126,10 +126,8 @@ Distributed under the LGPL 3.0 License. See `LICENSE` for more information.
 
 [contributors-shield]: https://img.shields.io/badge/CONTRIBUTORS-3-blueviolet?style=for-the-badge
 
-[contributors-url]: docs/contributors
+[contributors-url]: https://github.com/canadiannomad/clockwork-event-sourcing/blob/master/AUTHORS.md
 
 [license-shield]: https://img.shields.io/badge/LICENSE-LGPL--3.0-blue?style=for-the-badge
 
-[license-url]: https://github.com/canadiannomad/clockwork-event-sourcing/blob/master/LICENSE.txt
-
-[product-screenshot]: docs/images/screenshot.png
+[license-url]: https://github.com/canadiannomad/clockwork-event-sourcing/blob/master/LICENSE
