@@ -7,8 +7,7 @@
  * State Changes: Updates Async Request with Output
  * Next: None
  */
-import { Event } from '../../../src/lib/types';
-import redis from '../../../src/redis';
+import {eventqueue, redis, types} from '../../../src'
 import { PayloadHTTP, Request } from '../../types';
 
 const stateKey = `hello-world-state`;
@@ -23,7 +22,7 @@ const listenFor = ['PayloadHTTP'];
  * @param {string}  evt - The event data.
  * @return {Promise<any>} Promise.
  */
-const handler = async (evt: Event<PayloadHTTP>): Promise<any> => {
+const handler = async (evt: types.Event<PayloadHTTP>): Promise<any> => {
   const input = evt.payload as PayloadHTTP;
   if (input.call != 'helloworld') {
     return null;

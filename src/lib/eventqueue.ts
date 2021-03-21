@@ -1,13 +1,13 @@
 import { EventEmitter } from 'events';
 import { hostname } from 'os';
 import { ClockWorkOptions, Event } from './types';
-import redis from './redis';
-import logger from './logger';
-import config from './config';
-import utils from './utils';
-import storage from './storage';
+import {redis} from './redis';
+import {logger} from './logger';
+import {config} from './config';
+import {utils} from './utils';
+import {storage} from './storage';
 
-const clockwork = (options: ClockWorkOptions) => {
+export const eventqueue = (options: ClockWorkOptions) => {
   const hn = hostname();
   const log = logger('Lib Event Queue');
   const queues = {};
@@ -189,12 +189,9 @@ const clockwork = (options: ClockWorkOptions) => {
       }
     }
   };
-
   const clockworkObj = {
     initializeQueues,
     send,
   };
   return clockworkObj;
 };
-
-export default clockwork;

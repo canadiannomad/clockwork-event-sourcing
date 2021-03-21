@@ -1,7 +1,7 @@
-import s3 from './s3';
-import redis from './redis';
-import utils from './utils';
-import logger from './logger';
+import {s3 }from './s3';
+import {redis} from './redis';
+import {utils} from './utils';
+import {logger} from './logger';
 
 const log = logger('Lib Storage');
 
@@ -45,7 +45,7 @@ const getS3Events = async (folder): Promise<any> => {
   return files;
 };
 
-export default {
+export const storage = {
   addEvent,
   getEvent,
   getEvents,
