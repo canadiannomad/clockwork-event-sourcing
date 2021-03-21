@@ -1,4 +1,4 @@
-import ClockWork from '../src';
+import { eventqueue } from '../src';
 import * as events from './events';
 import { ClockWorkOptions } from '../src/lib/types';
 import webserver from './webserver';
@@ -14,7 +14,7 @@ const options: ClockWorkOptions = {
   },
 };
 
-const cw = ClockWork(options);
+const cw = eventqueue.default(options);
 
 const init = async () => {
   await cw.initializeQueues(events);
