@@ -16,7 +16,7 @@ const redisConnect = (host: string, password: string, port = 6379) => {
   return new Promise((resolve) => {
     const config: any = {
       host,
-      port: 6379,
+      port,
     };
     if (password) {
       config.password = password;

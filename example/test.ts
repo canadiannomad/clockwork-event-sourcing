@@ -66,7 +66,7 @@ const testHTTPRequest = async () => {
     payload,
   };
 
-  var response = await cw.send('PayloadHTTP', evt);
+  var response = await cw.send(payload.call, evt);
   console.log(`send event`, evt);
 };
 

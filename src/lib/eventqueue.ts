@@ -70,8 +70,8 @@ export const eventqueue = (options: ClockWorkOptions) => {
             log.info(`Listening for ${allowedEvents[funcName].listenFor[j]} to call ${funcName}`);
             await redis.xgroup(
               'CREATE',
-              `${options.redisConfig.prefix}-stream-${allowedEvents[funcName].listenFor[j]}`,
-              `${options.redisConfig.prefix}-cg-${funcName}`,
+              `${options.redisConfig.prefix}-stream-${funcName}`,
+              `${options.redisConfig.prefix}-cg-${allowedEvents[funcName].listenFor[j]}`,
               '$',
               'MKSTREAM',
             );
@@ -79,18 +79,18 @@ export const eventqueue = (options: ClockWorkOptions) => {
             // log.info(`Failed add ${allowedEvents[funcName].listenFor[j]}`, e);
             // Do nothing.  Group already exists.
           }
-          await initializeStorage(`${options.redisConfig.prefix}-stream-${allowedEvents[funcName].listenFor[j]}`);
+          await initializeStorage(`${options.redisConfig.prefix}-stream-${funcName}`);
         }
         for (let j = 0; j < allowedEvents[funcName].listenFor.length; j += 1) {
           const evtListener = new EventEmitter();
           setInterval(async () => {
             let response = [];
-            const streamName = `${options.redisConfig.prefix}-stream-${allowedEvents[funcName].listenFor[j]}`;
+            const streamName = `${options.redisConfig.prefix}-stream-${funcName}`;
             try {
               response = await redis.xreadgroup(
                 'GROUP',
-                `${options.redisConfig.prefix}-cg-${funcName}`,
-                `${hn}-${funcName}-${allowedEvents[funcName].listenFor[j]}`,
+                `${options.redisConfig.prefix}-cg-${allowedEvents[funcName].listenFor[j]}`,
+                `${hn}-${funcName}-${funcName}`,
                 //'BLOCK',
                 //'0',
                 'COUNT',
@@ -131,8 +131,8 @@ export const eventqueue = (options: ClockWorkOptions) => {
               log.info('Processing Queue');
               await processEvent(funcName, evt);
               await redis.xack(
-                `${options.redisConfig.prefix}-stream-${allowedEvents[funcName].listenFor[j]}`,
-                `${options.redisConfig.prefix}-cg-${funcName}`,
+                `${options.redisConfig.prefix}-stream-${funcName}`,
+                `${options.redisConfig.prefix}-cg-${allowedEvents[funcName].listenFor[j]}`,
                 evtId,
               );
             } catch (e) {
@@ -149,12 +149,12 @@ export const eventqueue = (options: ClockWorkOptions) => {
 
   /**
    * This function sends event data to the events queue.
-   * @param {string}  outputPayloadType - The output payload type.
+   * @param {string}  funcName - The function name.
    * @param {Event<any>}  event - The event.
    * @return {Promise<any>} A promise.
    */
-  const send = async (outputPayloadType: string, event: Event<any>): Promise<any> => {
-    return await storage.addEvent(`${options.redisConfig.prefix}-stream-${outputPayloadType}`, event);
+  const send = async (funcName: string, event: Event<any>): Promise<any> => {
+    return await storage.addEvent(`${options.redisConfig.prefix}-stream-${funcName}`, event);
   };
 
   /**
