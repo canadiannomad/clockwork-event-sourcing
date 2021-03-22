@@ -7,7 +7,7 @@
  * State Changes: Updates Async Request with Output
  * Next: None
  */
-import {eventqueue, redis, types} from '../../../src'
+import { eventqueue, redis, types } from '../../../src';
 import { PayloadHTTP, Request } from '../../types';
 
 const stateKey = `hello-world-state`;
@@ -17,6 +17,17 @@ const stateKey = `hello-world-state`;
 */
 const listenFor = ['PayloadHTTP'];
 
+
+/**
+ * This function returns weather or not the funcion can be processed
+ * @param {string}  evt - The event data.
+ * @return {boolean} Boolean.
+ */
+const filter = (evt: types.Event<PayloadHTTP>): boolean => {
+  const input = evt.payload as PayloadHTTP;
+  return input.call == 'helloworld';
+};
+
 /**
  * This function process a hello world event
  * @param {string}  evt - The event data.
@@ -24,18 +35,15 @@ const listenFor = ['PayloadHTTP'];
  */
 const handler = async (evt: types.Event<PayloadHTTP>): Promise<any> => {
   const input = evt.payload as PayloadHTTP;
-  if (input.call != 'helloworld') {
-    return null;
-  }
   const requestId = input.requestId;
   const requestKey = `${input.call}-${requestId}`;
   let request = JSON.parse(await redis.get(requestKey)) || ({} as Request);
-  let helloWorldState = await redis.get(stateKey) || 0;
+  let helloWorldState = (await redis.get(stateKey)) || 0;
 
   request.output = {
     body: {
-      message: "Hello World",
-      helloWorldState
+      message: 'Hello World',
+      helloWorldState,
     },
     headers: {
       'Content-Type': 'text/json',
@@ -65,7 +73,7 @@ const stateChange = async () => {
  */
 const allowedFunctions = (): Record<string, unknown> => {
   return {
-    helloworld: { listenFor, handler, outputPayloadType, stateChange },
+    helloworld: { listenFor, handler, outputPayloadType, stateChange, filter},
   };
 };
 

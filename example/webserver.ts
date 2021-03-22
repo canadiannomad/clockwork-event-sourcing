@@ -63,7 +63,7 @@ const sendEvent = async (url, parameters = {}, body = {}): Promise<any> => {
     rawPayload: {},
     payload,
   };
-  return await clockWork.send('PayloadHTTP', evt);
+  return await clockWork.send(payload.call, evt);
 };
 
 export default { init };

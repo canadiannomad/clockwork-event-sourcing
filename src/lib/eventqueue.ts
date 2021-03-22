@@ -1,11 +1,11 @@
 import { EventEmitter } from 'events';
 import { hostname } from 'os';
 import { ClockWorkOptions, Event } from './types';
-import {redis} from './redis';
-import {logger} from './logger';
-import {config} from './config';
-import {utils} from './utils';
-import {storage} from './storage';
+import { redis } from './redis';
+import { logger } from './logger';
+import { config } from './config';
+import { utils } from './utils';
+import { storage } from './storage';
 
 export const eventqueue = (options: ClockWorkOptions) => {
   const hn = hostname();
@@ -168,19 +168,21 @@ export const eventqueue = (options: ClockWorkOptions) => {
       log.info(`Received message on queue '${funcName}'`);
       evt.hops += 1;
 
-      var result = await allowedEvents[funcName].handler(evt);
-      
-      if (result != null && allowedEvents[funcName].outputPayloadType) {
-        if (!evt.stored) {
-          log.info('Storing Event', { evt });
-          evt.stored = true;
-          await send(allowedEvents[funcName].outputPayloadType, evt);
-        }
-        if (allowedEvents[funcName].stateChange) {
-          log.info('Update State', { funcName, evt });
-          await allowedEvents[funcName].stateChange(evt);
-        }
+      var canHandle = allowedEvents[funcName].filter(evt);
+      if (canHandle) {
+        var result = await allowedEvents[funcName].handler(evt);
 
+        if (result != null && allowedEvents[funcName].outputPayloadType) {
+          if (!evt.stored) {
+            log.info('Storing Event', { evt });
+            evt.stored = true;
+            await send(allowedEvents[funcName].outputPayloadType, evt);
+          }
+          if (allowedEvents[funcName].stateChange) {
+            log.info('Update State', { funcName, evt });
+            await allowedEvents[funcName].stateChange(evt);
+          }
+        }
       }
     } catch (e) {
       log.error('Error in process', e);
