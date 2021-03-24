@@ -1,6 +1,6 @@
 import { EventEmitter } from 'events';
 import { hostname } from 'os';
-import { ClockWorkOptions, Event } from './types';
+import { ClockWorkOptions, Event, ClockWorkEvent } from './types';
 import { redis } from './redis';
 import { logger } from './logger';
 import { config } from './config';
@@ -10,7 +10,6 @@ import { storage } from './storage';
 export const eventqueue = (options: ClockWorkOptions) => {
   const hn = hostname();
   const log = logger('Lib Event Queue');
-  const queues = {};
   let allowedEvents = {};
 
   config.setConfiguration(options);
@@ -26,16 +25,11 @@ export const eventqueue = (options: ClockWorkOptions) => {
       if (events.hasOwnProperty(eventName)) {
         log.info(`Adding Event ${eventName}`);
         log.info(`Property names`, Object.keys(events[eventName]).toString());
-        Object.keys(events[eventName]).forEach((fileName) => {
-          if (events[eventName][fileName] && events[eventName][fileName].allowedFunctions) {
-            const funcs = events[eventName][fileName].allowedFunctions();
-            const funcNames = Object.keys(funcs);
-            log.info(`Adding Functions ${eventName}`, funcNames);
-            if (funcNames) {
-              eventList = Object.assign(eventList, funcs);
-            }
-          }
-        });
+
+        let eventObj: Record<string, unknown> = {};
+        eventObj[eventName] = events[eventName];
+
+        eventList = Object.assign(eventList, eventObj);
       }
     }
     log.info('Allowed Events:', Object.keys(eventList).toString());
@@ -143,7 +137,6 @@ export const eventqueue = (options: ClockWorkOptions) => {
           evtListeners.push(evtListener);
         }
       }
-      queues[funcName] = { listeners: evtListeners };
     }
   };
 
@@ -168,24 +161,16 @@ export const eventqueue = (options: ClockWorkOptions) => {
       log.info(`Received message on queue '${funcName}'`);
       evt.hops += 1;
 
-      var canHandle = allowedEvents[funcName].filter(evt);
-      if (canHandle) {
-        var result = await allowedEvents[funcName].handler(evt);
+      var canHandle = allowedEvents[funcName].filterEvent(evt);
 
-        if (result != null && allowedEvents[funcName].outputPayloadType) {
-          if (!evt.stored) {
-            log.info('Storing Event', { evt });
-            evt.stored = true;
-            await send(allowedEvents[funcName].outputPayloadType, evt);
-          }
-          if (allowedEvents[funcName].stateChange) {
-            log.info('Update State', { funcName, evt });
-            await allowedEvents[funcName].stateChange(evt);
-          }
-        }
+      if (canHandle) {
+        var result = await allowedEvents[funcName].handleStateChange(evt);
+        log.info(`Executing ${funcName} side effects`);
+        await allowedEvents[funcName].handleSideEffects(evt);
       }
     } catch (e) {
-      log.error('Error in process', e);
+      log.error('Error processing Event', e);
+      
       if (globalThis.testMode) {
         process.exit(1);
       }
