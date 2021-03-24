@@ -2,7 +2,6 @@
 
 export * as config from './config';
 export * as eventqueue from './eventqueue';
-export * as getSecretValue from './getSecretValue';
 export * as logger from './logger';
 export * as redis from './redis';
 export * as s3 from './s3';

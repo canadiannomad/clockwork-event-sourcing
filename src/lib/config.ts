@@ -10,4 +10,4 @@ const setConfiguration = (options: ClockWorkOptions): void => {
   queueOptions = options;
 };
 
-export default { getConfiguration, setConfiguration };
+export const config = { getConfiguration, setConfiguration };

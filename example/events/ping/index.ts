@@ -1,23 +1,23 @@
 /*
- * Event: HelloWorld
- * Description: Returns Hello World to an Async Request
+ * Event: Ping
+ * Description: Returns Pong++ to an Async Request
  * Input Payload: PayloadHTTP
- * Output Payload: Any
- * Side Effects: Increase HelloWorld State
+ * Output Payload: any
+ * Side Effects: Increase Ping State
  * State Changes: Updates Async Request with Output
  * Next: None
  */
 import { eventqueue, redis, types } from '../../../src';
 import { PayloadHTTP, Request } from '../../types';
 
-export class HelloWorld implements types.ClockWorkEvent<PayloadHTTP> {
+export class Ping implements types.ClockWorkEvent<PayloadHTTP> {
   
   listenFor: string[] = ['PayloadHTTP'];
-  stateKey:string = 'hello-world-state';
+  stateKey:string = 'ping-state';
 
   filterEvent = (event: types.Event<PayloadHTTP>): boolean => {
     const input = event.payload;
-    return input.call == 'helloworld';
+    return input.call == 'ping';
   };
 
   handleStateChange = async (event: types.Event<PayloadHTTP>): Promise<any> => {
@@ -26,12 +26,12 @@ export class HelloWorld implements types.ClockWorkEvent<PayloadHTTP> {
 
     const requestKey = `${input.call}-${requestId}`;
     let request = {} as Request;
-    let helloWorldState = (await redis.get(this.stateKey)) || 0;
+    let pingState = (await redis.get(this.stateKey)) || 0;
 
     request.output = {
       body: {
-        message: 'Hello World',
-        helloWorldState,
+        message: 'Pong',
+        pingState,
       },
       headers: {
         'Content-Type': 'text/json',

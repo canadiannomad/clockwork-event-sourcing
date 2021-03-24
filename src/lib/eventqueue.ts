@@ -1,16 +1,15 @@
 import { EventEmitter } from 'events';
 import { hostname } from 'os';
 import { ClockWorkOptions, Event } from './types';
-import redis from './redis';
-import logger from './logger';
-import config from './config';
-import utils from './utils';
-import storage from './storage';
+import { redis } from './redis';
+import { logger } from './logger';
+import { config } from './config';
+import { utils } from './utils';
+import { storage } from './storage';
 
-const clockwork = (options: ClockWorkOptions) => {
+export const eventqueue = (options: ClockWorkOptions): any => {
   const hn = hostname();
   const log = logger('Lib Event Queue');
-  const queues = {};
   let allowedEvents = {};
 
   config.setConfiguration(options);
@@ -26,16 +25,11 @@ const clockwork = (options: ClockWorkOptions) => {
       if (events.hasOwnProperty(eventName)) {
         log.info(`Adding Event ${eventName}`);
         log.info(`Property names`, Object.keys(events[eventName]).toString());
-        Object.keys(events[eventName]).forEach((fileName) => {
-          if (events[eventName][fileName] && events[eventName][fileName].allowedFunctions) {
-            const funcs = events[eventName][fileName].allowedFunctions();
-            const funcNames = Object.keys(funcs);
-            log.info(`Adding Functions ${eventName}`, funcNames);
-            if (funcNames) {
-              eventList = Object.assign(eventList, funcs);
-            }
-          }
-        });
+
+        const eventObj: Record<string, unknown> = {};
+        eventObj[eventName] = events[eventName];
+
+        eventList = Object.assign(eventList, eventObj);
       }
     }
     log.info('Allowed Events:', Object.keys(eventList).toString());
@@ -70,8 +64,8 @@ const clockwork = (options: ClockWorkOptions) => {
             log.info(`Listening for ${allowedEvents[funcName].listenFor[j]} to call ${funcName}`);
             await redis.xgroup(
               'CREATE',
-              `${options.redisConfig.prefix}-stream-${allowedEvents[funcName].listenFor[j]}`,
-              `${options.redisConfig.prefix}-cg-${funcName}`,
+              `${options.redisConfig.prefix}-stream-${funcName}`,
+              `${options.redisConfig.prefix}-cg-${allowedEvents[funcName].listenFor[j]}`,
               '$',
               'MKSTREAM',
             );
@@ -79,18 +73,18 @@ const clockwork = (options: ClockWorkOptions) => {
             // log.info(`Failed add ${allowedEvents[funcName].listenFor[j]}`, e);
             // Do nothing.  Group already exists.
           }
-          await initializeStorage(`${options.redisConfig.prefix}-stream-${allowedEvents[funcName].listenFor[j]}`);
+          await initializeStorage(`${options.redisConfig.prefix}-stream-${funcName}`);
         }
         for (let j = 0; j < allowedEvents[funcName].listenFor.length; j += 1) {
           const evtListener = new EventEmitter();
           setInterval(async () => {
             let response = [];
-            const streamName = `${options.redisConfig.prefix}-stream-${allowedEvents[funcName].listenFor[j]}`;
+            const streamName = `${options.redisConfig.prefix}-stream-${funcName}`;
             try {
               response = await redis.xreadgroup(
                 'GROUP',
-                `${options.redisConfig.prefix}-cg-${funcName}`,
-                `${hn}-${funcName}-${allowedEvents[funcName].listenFor[j]}`,
+                `${options.redisConfig.prefix}-cg-${allowedEvents[funcName].listenFor[j]}`,
+                `${hn}-${funcName}-${funcName}`,
                 //'BLOCK',
                 //'0',
                 'COUNT',
@@ -131,8 +125,8 @@ const clockwork = (options: ClockWorkOptions) => {
               log.info('Processing Queue');
               await processEvent(funcName, evt);
               await redis.xack(
-                `${options.redisConfig.prefix}-stream-${allowedEvents[funcName].listenFor[j]}`,
-                `${options.redisConfig.prefix}-cg-${funcName}`,
+                `${options.redisConfig.prefix}-stream-${funcName}`,
+                `${options.redisConfig.prefix}-cg-${allowedEvents[funcName].listenFor[j]}`,
                 evtId,
               );
             } catch (e) {
@@ -143,18 +137,17 @@ const clockwork = (options: ClockWorkOptions) => {
           evtListeners.push(evtListener);
         }
       }
-      queues[funcName] = { listeners: evtListeners };
     }
   };
 
   /**
    * This function sends event data to the events queue.
-   * @param {string}  outputPayloadType - The output payload type.
+   * @param {string}  funcName - The function name.
    * @param {Event<any>}  event - The event.
    * @return {Promise<any>} A promise.
    */
-  const send = async (outputPayloadType: string, event: Event<any>): Promise<any> => {
-    return await storage.addEvent(`${options.redisConfig.prefix}-stream-${outputPayloadType}`, event);
+  const send = async (funcName: string, event: Event<any>): Promise<any> => {
+    return await storage.addEvent(`${options.redisConfig.prefix}-stream-${funcName}`, event);
   };
 
   /**
@@ -168,33 +161,26 @@ const clockwork = (options: ClockWorkOptions) => {
       log.info(`Received message on queue '${funcName}'`);
       evt.hops += 1;
 
-      var result = await allowedEvents[funcName].handler(evt);
-      
-      if (result != null && allowedEvents[funcName].outputPayloadType) {
-        if (!evt.stored) {
-          log.info('Storing Event', { evt });
-          evt.stored = true;
-          await send(allowedEvents[funcName].outputPayloadType, evt);
-        }
-        if (allowedEvents[funcName].stateChange) {
-          log.info('Update State', { funcName, evt });
-          await allowedEvents[funcName].stateChange(evt);
-        }
+      const canHandle = allowedEvents[funcName].filterEvent(evt);
 
+      if (canHandle) {
+        log.info(`Executing ${funcName} state change`);
+        await allowedEvents[funcName].handleStateChange(evt);
+
+        log.info(`Executing ${funcName} side effects`);
+        await allowedEvents[funcName].handleSideEffects(evt);
       }
     } catch (e) {
-      log.error('Error in process', e);
+      log.error('Error processing Event', e);
+
       if (globalThis.testMode) {
         process.exit(1);
       }
     }
   };
-
   const clockworkObj = {
     initializeQueues,
     send,
   };
   return clockworkObj;
 };
-
-export default clockwork;

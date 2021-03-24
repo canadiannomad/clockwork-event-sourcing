@@ -1,9 +1,8 @@
-import ClockWork from '../src';
+import { eventqueue, types } from '../src';
 import * as events from './events';
-import { ClockWorkOptions } from '../src/lib/types';
 import webserver from './webserver';
 
-const options: ClockWorkOptions = {
+const options: types.ClockWorkOptions = {
   s3Bucket: 'yourbucket',
   events: events,
   redisConfig: {
@@ -14,7 +13,7 @@ const options: ClockWorkOptions = {
   },
 };
 
-const cw = ClockWork(options);
+const cw = eventqueue(options);
 
 const init = async () => {
   await cw.initializeQueues(events);

@@ -1,8 +1,7 @@
 import { v1 as uuidv1 } from 'uuid';
 import { createServer, IncomingMessage, ServerResponse } from 'http';
 import { Event, EventDirection, PayloadHTTPMethod } from '../src/lib/types';
-import redis from '../src/redis';
-import logger from '../src/logger';
+import {redis, logger} from '../src/';
 
 const sleep = require('util').promisify(setTimeout);
 const log = logger('CW Web Server');
@@ -64,7 +63,7 @@ const sendEvent = async (url, parameters = {}, body = {}): Promise<any> => {
     rawPayload: {},
     payload,
   };
-  return await clockWork.send('PayloadHTTP', evt);
+  return await clockWork.send(payload.call, evt);
 };
 
 export default { init };

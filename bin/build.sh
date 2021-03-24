@@ -1,5 +1,9 @@
 #!/bin/bash -e
-rm -R built/*
+
+if [ -f "built" ] ; then
+    rm -R built/*
+fi
+
 DIR=$(dirname "$(readlink -f "$0")")
 cd ${DIR}/..
 DIR=$(pwd)

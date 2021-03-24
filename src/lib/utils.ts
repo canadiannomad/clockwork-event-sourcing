@@ -51,7 +51,7 @@ const kvArrayToObject = (kvArray: Array<any>, callback: kvArrayToObjCB | null = 
   return newObj;
 };
 
-export default {
+export const utils = {
   objectToKVArray,
   kvArrayToObject,
 };

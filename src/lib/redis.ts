@@ -2,9 +2,8 @@ import './types';
 import evtEmitter = require('events');
 import ioredis = require('ioredis');
 import * as util from 'util';
-import getSecretValue from './getSecretValue';
-import logger from './logger';
-import config from './config';
+import { logger } from './logger';
+import { config } from './config';
 
 evtEmitter.EventEmitter.defaultMaxListeners = 40;
 
@@ -17,7 +16,7 @@ const redisConnect = (host: string, password: string, port = 6379) => {
   return new Promise((resolve) => {
     const config: any = {
       host,
-      port: 6379,
+      port,
     };
     if (password) {
       config.password = password;
@@ -81,7 +80,7 @@ const redisClient = (func: string) => {
   };
 };
 
-export default {
+export const redis = {
   del: redisClient('del'),
   get: redisClient('get'),
   quit: redisClient('quit'),

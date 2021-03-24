@@ -132,4 +132,4 @@ const gen = (context: string, enabled = true): Record<string, LoggerFunction> =>
   return logObj;
 };
 
-export default gen;
+export const logger = gen;

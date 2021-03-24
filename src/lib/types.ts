@@ -36,3 +36,9 @@ export enum PayloadHTTPMethod {
   Post = 'POST',
 }
 
+export interface ClockWorkEvent<T> {
+  listenFor: string[];
+  filterEvent(event: Event<T>): boolean;
+  handleStateChange(event: Event<T>);
+  handleSideEffects(event: Event<T>);
+}

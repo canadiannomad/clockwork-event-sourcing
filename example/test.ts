@@ -1,21 +1,18 @@
 import { v1 as uuidv1 } from 'uuid';
-import { Event, EventDirection, ClockWorkOptions, PayloadHTTPMethod} from '../src/lib/types';
-import {PayloadHTTP, Request} from './types'
-import ClockWork from '../src';
-import logger from '../src/logger';
+import { PayloadHTTP, Request } from './types';
+import { eventqueue, logger, types } from '../src';
 import * as events from './events';
-
 const log = logger('Integration Tests');
-const options: ClockWorkOptions = {
+const options: types.ClockWorkOptions = {
   s3Bucket: 'mapreducelambda',
   testMode: true,
   events,
   redisConfig: {
     host: '127.0.0.1',
-    prefix: 'test-clockwork'
-  }
+    prefix: 'test-clockwork',
+  },
 };
-const cw = ClockWork(options);
+const cw = eventqueue(options);
 
 process.on('warning', (e) => log.warn(e.stack));
 process.on('unhandledRejection', (err) => {
@@ -38,7 +35,7 @@ const testHTTPRequest = async () => {
     payloadType: 'HTTP',
     payloadVersion: '0.0.1',
     requestId: uuidv1(),
-    method: PayloadHTTPMethod.Get,
+    method: types.PayloadHTTPMethod.Get,
     path: '/',
     call: 'helloworld',
     parameters: {},
@@ -58,20 +55,19 @@ const testHTTPRequest = async () => {
     },
   };
 
-  const evt: Event<PayloadHTTP> = {
-    direction: EventDirection.Incoming,
+  const evt: types.Event<PayloadHTTP> = {
+    direction: types.EventDirection.Incoming,
     source: 'HTTP',
     sourceVersion: '0.0.1',
     date: new Date().toJSON(),
     hops: 1,
     cost: '0.00',
     rawPayload: {},
-    payload
+    payload,
   };
-  
-  var response =  await cw.send('PayloadHTTP', evt);
+
+  var response = await cw.send(payload.call, evt);
   console.log(`send event`, evt);
-  
 };
 
 init();
