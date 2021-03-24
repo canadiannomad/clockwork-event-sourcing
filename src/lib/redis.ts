@@ -2,8 +2,8 @@ import './types';
 import evtEmitter = require('events');
 import ioredis = require('ioredis');
 import * as util from 'util';
-import {logger} from './logger';
-import {config} from './config';
+import { logger } from './logger';
+import { config } from './config';
 
 evtEmitter.EventEmitter.defaultMaxListeners = 40;
 

@@ -1,13 +1,13 @@
 import { EventEmitter } from 'events';
 import { hostname } from 'os';
-import { ClockWorkOptions, Event, ClockWorkEvent } from './types';
+import { ClockWorkOptions, Event } from './types';
 import { redis } from './redis';
 import { logger } from './logger';
 import { config } from './config';
 import { utils } from './utils';
 import { storage } from './storage';
 
-export const eventqueue = (options: ClockWorkOptions) => {
+export const eventqueue = (options: ClockWorkOptions): any => {
   const hn = hostname();
   const log = logger('Lib Event Queue');
   let allowedEvents = {};
@@ -26,7 +26,7 @@ export const eventqueue = (options: ClockWorkOptions) => {
         log.info(`Adding Event ${eventName}`);
         log.info(`Property names`, Object.keys(events[eventName]).toString());
 
-        let eventObj: Record<string, unknown> = {};
+        const eventObj: Record<string, unknown> = {};
         eventObj[eventName] = events[eventName];
 
         eventList = Object.assign(eventList, eventObj);
@@ -161,16 +161,18 @@ export const eventqueue = (options: ClockWorkOptions) => {
       log.info(`Received message on queue '${funcName}'`);
       evt.hops += 1;
 
-      var canHandle = allowedEvents[funcName].filterEvent(evt);
+      const canHandle = allowedEvents[funcName].filterEvent(evt);
 
       if (canHandle) {
-        var result = await allowedEvents[funcName].handleStateChange(evt);
+        log.info(`Executing ${funcName} state change`);
+        await allowedEvents[funcName].handleStateChange(evt);
+
         log.info(`Executing ${funcName} side effects`);
         await allowedEvents[funcName].handleSideEffects(evt);
       }
     } catch (e) {
       log.error('Error processing Event', e);
-      
+
       if (globalThis.testMode) {
         process.exit(1);
       }

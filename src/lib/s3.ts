@@ -1,8 +1,7 @@
-import { ClockWorkOptions } from './types';
 import { S3 } from 'aws-sdk/clients/all';
 import { PutObjectRequest } from 'aws-sdk/clients/s3';
-import {logger} from './logger';
-import {config} from './config';
+import { logger } from './logger';
+import { config } from './config';
 
 const log = logger('S3');
 const s3Obj = new S3();
@@ -62,7 +61,7 @@ const getJsonFile = async (name: string): Promise<any> => {
  * @param {string}  continuationToken - The continuation token.
  * @return {Promise<any>} Promise that returns the folder files list.
  */
-const listFiles = async (folder: string, continuationToken: string = null) => {
+const listFiles = async (folder: string, continuationToken: string = null): Promise<any> => {
   try {
     let result = [];
     const bucket = config.getConfiguration().s3Bucket;
