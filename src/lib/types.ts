@@ -1,10 +1,19 @@
 export type LoggerFunction = (...args: any[]) => void;
 
 export interface ClockWorkOptions {
-  s3Bucket: string;
+  s3: S3Config;
   events?: any;
   testMode?: boolean;
   redisConfig?: RedisConfig;
+}
+
+export interface S3Config {
+  bucket: string;
+  accessKeyId: string;
+  secretAccessKey: string;
+  endpoint: string;
+  s3ForcePathStyle: boolean;
+  signatureVersion: string;
 }
 
 export interface RedisConfig {

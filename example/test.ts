@@ -4,7 +4,14 @@ import { eventqueue, logger, types } from '../src';
 import * as events from './events';
 const log = logger('Integration Tests');
 const options: types.ClockWorkOptions = {
-  s3Bucket: 'mapreducelambda',
+  s3: {
+    bucket: 'yourbuckettest',
+    accessKeyId: 'minio',
+    secretAccessKey: 'minio123',
+    endpoint: 'http://minio:9000',
+    s3ForcePathStyle: true,
+    signatureVersion: 'v4',
+  },
   testMode: true,
   events,
   redisConfig: {

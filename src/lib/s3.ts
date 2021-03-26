@@ -4,7 +4,11 @@ import { logger } from './logger';
 import { config } from './config';
 
 const log = logger('S3');
-const s3Obj = new S3();
+
+const getS3Object = (): S3 => {
+  const s3Config = config.getConfiguration().s3;
+  return new S3(s3Config);
+};
 
 /**
  * This function saves a text file into a S3 bucket.
@@ -13,7 +17,7 @@ const s3Obj = new S3();
  * @return {Promise<any>} Promise that returns the S3 response.
  */
 const saveJsonFile = async (name: string, content: string): Promise<any> => {
-  const bucket = config.getConfiguration().s3Bucket;
+  const bucket = config.getConfiguration().s3.bucket;
   const testMode = config.getConfiguration().testMode;
   const putObject: PutObjectRequest = {
     Bucket: bucket,
@@ -23,7 +27,7 @@ const saveJsonFile = async (name: string, content: string): Promise<any> => {
   log.info(`Saving file ${name}`, { putObject });
   try {
     if (!testMode) {
-      await s3Obj.putObject(putObject).promise();
+      await getS3Object().putObject(putObject).promise();
       log.info('Saved file:', { name });
     }
   } catch (e) {
@@ -38,14 +42,14 @@ const saveJsonFile = async (name: string, content: string): Promise<any> => {
  * @return {Promise<any>} Promise that returns the file content.
  */
 const getJsonFile = async (name: string): Promise<any> => {
-  const bucket = config.getConfiguration().s3Bucket;
+  const bucket = config.getConfiguration().s3.bucket;
   const request: S3.GetObjectRequest = {
     Bucket: bucket,
     Key: name,
   };
 
   try {
-    const retVal = await s3Obj.getObject(request).promise();
+    const retVal = await getS3Object().getObject(request).promise();
     const data = retVal.Body.toString('utf-8');
     log.info('Got file:', { name });
     return JSON.parse(data as any);
@@ -64,7 +68,7 @@ const getJsonFile = async (name: string): Promise<any> => {
 const listFiles = async (folder: string, continuationToken: string = null): Promise<any> => {
   try {
     let result = [];
-    const bucket = config.getConfiguration().s3Bucket;
+    const bucket = config.getConfiguration().s3.bucket;
     const request = {
       Bucket: bucket,
       Prefix: `${folder}/`,
@@ -73,7 +77,7 @@ const listFiles = async (folder: string, continuationToken: string = null): Prom
 
     log.info(`Getting files from ${folder}, ${continuationToken}`, bucket);
 
-    const retVal = await s3Obj.listObjectsV2(request).promise();
+    const retVal = await getS3Object().listObjectsV2(request).promise();
     if (retVal.Contents?.length > 0) {
       const files = retVal.Contents.map((file) => {
         return file.Key.replace(`${folder}/`, '');
