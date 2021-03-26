@@ -10,7 +10,7 @@
   "license": "LGPL-3.0",
   "private": false,
   "scripts": {
-    "start": "bash bin/build.sh && start http://localhost:5000 && bash bin/start.sh",
+    "start": "bash bin/build.sh && bash bin/start.sh",
     "test": "bash bin/test.sh",
     "lint": "bash bin/lint.sh",
     "build": "bash bin/build.sh",
@@ -24,18 +24,8 @@
   "devDependencies": {
     "@types/node": "^12.12.54",
     "@types/uuid": "^8.3.0",
-    "@typescript-eslint/eslint-plugin": "^3.9.0",
-    "@typescript-eslint/parser": "^3.9.0",
     "eslint": "^6.8.0",
-    "eslint-config-prettier": "^6.11.0",
-    "eslint-plugin-import": "^2.22.0",
-    "eslint-plugin-prettier": "^3.1.4",
-    "esm": "^3.2.25",
-    "prettier": "^2.1.1",
-    "source-map-loader": "^0.2.4",
-    "typescript": "^3.9.7",
-    "webpack": "^4.44.1",
-    "webpack-cli": "^3.3.12"
+    "typescript": "^3.9.7"
   },
   "directories": {
     "doc": "docs",

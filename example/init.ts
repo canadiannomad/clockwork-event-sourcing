@@ -3,10 +3,17 @@ import * as events from './events';
 import webserver from './webserver';
 
 const options: types.ClockWorkOptions = {
-  s3Bucket: 'yourbucket',
+  s3: {
+    bucket: 'yourbucket',
+    accessKeyId: 'minio',
+    secretAccessKey: 'minio123',
+    endpoint: 'http://minio:9000',
+    s3ForcePathStyle: true,
+    signatureVersion: 'v4',
+  },
   events: events,
   redisConfig: {
-    host: '127.0.0.1',
+    host: 'redis',
     password: '',
     port: 6379,
     prefix: 'cw',
