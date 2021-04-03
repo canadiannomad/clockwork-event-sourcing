@@ -18,7 +18,8 @@
     "strictPropertyInitialization": false,
     "noImplicitThis": true,
     "target": "es2019",
-    "types": ["node"]
+    "types": ["node"],
+    "declaration": true
   },
   "include": [
     "./example/init.ts",

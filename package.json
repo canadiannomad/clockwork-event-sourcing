@@ -3,6 +3,7 @@
   "version": "0.0.5",
   "description": "Minimal NodeJS(TypeScript) + Redis Event Sourcing Framework",
   "main": "built/src/index.js",
+  "typings": "built/src/index.d.ts",
   "author": "Kyle Jones <kyle@canadiannomad.com>",
   "homepage": "https://github.com/canadiannomad/clockwork-event-sourcing/issues",
   "url": "https://github.com/canadiannomad/clockwork-event-sourcing",
@@ -37,5 +38,8 @@
   },
   "bugs": {
     "url": "https://github.com/canadiannomad/clockwork-event-sourcing/issues"
-  }
+  },
+  "files":[
+    "built" 
+  ]
 }

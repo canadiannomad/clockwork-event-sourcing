@@ -7,7 +7,7 @@
  * State Changes: Updates Async Request with Output
  * Next: None
  */
-import { eventqueue, redis, types } from '../../../src';
+import { redis, types } from '../../../src';
 import { PayloadHTTP, Request } from '../../types';
 
 export class HelloWorld implements types.ClockWorkEvent<PayloadHTTP> {
