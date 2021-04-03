@@ -1,12 +1,15 @@
 #!/bin/bash -e
 
-if [ -f "built" ] ; then
-    rm -R built/*
-fi
-
 DIR=$(dirname "$(readlink -f "$0")")
 cd ${DIR}/..
 DIR=$(pwd)
+
+if [[ -d ${DIR}/built ]]
+then
+    echo "Cleaning built folder"
+    rm -R built/*
+fi
+
 PATH=${DIR}/node_modules/.bin:${PATH}
 cd ${DIR}/src
 find */ -type d | sort |
