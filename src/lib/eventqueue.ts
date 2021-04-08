@@ -172,10 +172,6 @@ export const eventqueue = (options: ClockWorkOptions): any => {
       }
     } catch (e) {
       log.error('Error processing Event', e);
-
-      if (globalThis.testMode) {
-        process.exit(1);
-      }
     }
   };
   const clockworkObj = {

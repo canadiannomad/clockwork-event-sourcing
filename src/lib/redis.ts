@@ -13,7 +13,7 @@ const promisify = util.promisify;
 let client: ioredis;
 
 const redisConnect = (host: string, password: string, port = 6379) => {
-  return new Promise((resolve) => {
+  return new Promise((resolve:any) => {
     const config: any = {
       host,
       port,
@@ -52,12 +52,10 @@ const redisConnect = (host: string, password: string, port = 6379) => {
 const redisClient = (func: string) => {
   return async (...args: any): Promise<any> => {
     if (!client) {
-      log.info('Logging into Redis');
       const redisConfig = config.getConfiguration().redisConfig;
       log.info('Redis Auth Starting');
       try {
         await redisConnect(redisConfig.host, redisConfig.password, redisConfig.port);
-        log.info('Redis Auth Complete');
       } catch (e) {
         log.error('Redis Auth failed:', e);
         throw e;
@@ -81,6 +79,7 @@ const redisClient = (func: string) => {
 };
 
 export const redis = {
+  exists: redisClient('exists'),
   del: redisClient('del'),
   get: redisClient('get'),
   quit: redisClient('quit'),
