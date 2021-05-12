@@ -52,39 +52,22 @@ $ npm install --save clockwork-event-sourcing
 $ npm build
 ```
 
-Because Clockwork uses ES6 syntax, using ```ts-node``` is not supported at this time.
-
 ### npm
 
 Several scripts are provided in the ./bin directory.
 
 ```sh
-> npm run-script build
+> npm run build
 ```
 This will create .js files for all .ts files found within the project folder. All new files will be created ```./built```
 
 ```sh
-> npm run-script free
-```
-Frees current memory used by clockwork.
-
-```sh
-> npm run-script lint
-```
-Turns on trace warnings and frees current memory.
-
-```sh
-> npm run-script pack
-```
-Creates a webpack config file.
-
-```sh
-> npm run-script start
+> npm run start
 ```
 Starts the hello world example and embedded webserver.
 
 ```sh
-> npm run-script test
+> npm run test
 ```
 Flushes Redis and runs built/example/test.js
 
