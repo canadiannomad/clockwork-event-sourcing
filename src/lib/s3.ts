@@ -24,7 +24,6 @@ const saveJsonFile = async (name: string, content: string): Promise<any> => {
     Body: JSON.stringify(content),
     Key: `${name}.json`,
   };
-  log.info(`Saving file ${name}`, { putObject });
   try {
     if (!testMode) {
       await getS3Object().putObject(putObject).promise();
@@ -104,7 +103,6 @@ const uploadBlobFile = async (folder: string, fileName: string, blob: Buffer) =>
     Body: blob,
     Key: `${folder}/${fileName}`,
   };
-  log.info(`Saving file ${fileName}`, { putObject });
   try {
     await getS3Object().putObject(putObject).promise();
     log.info('Saved file:', { fileName });
