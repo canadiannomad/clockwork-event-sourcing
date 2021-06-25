@@ -1,24 +1,23 @@
 import { v1 as uuidv1 } from 'uuid';
 import { createServer, IncomingMessage, ServerResponse } from 'http';
 import { Event, EventDirection, PayloadHTTPMethod } from '../src/lib/types';
-import {redis, logger} from '../src/';
+import { redis } from '../src/';
 
 const sleep = require('util').promisify(setTimeout);
-const log = logger('CW Web Server');
 let clockWork;
 
 const init = async (cw) => {
   clockWork = cw;
   const port = 5000;
-  log.info(`Starting web server on port ${port}`);
+  console.log('CW Web Server', `Starting web server on port ${port}`);
   const server = createServer(async (request: IncomingMessage, response: ServerResponse) => {
     let eventName = request.url.replace('/', '');
     if (eventName != '' && eventName != 'favicon.ico') {
-      log.info(`Request /${eventName}`);
+      console.log('CW Web Server', `Request /${eventName}`);
       var responseData = await sendEvent(eventName);
       var httpResponse = await getEventResponse(`${responseData.payload.call}-${responseData.payload.requestId}`);
       if (!httpResponse) {
-        log.info(`Request id ${responseData.payload.call}-${responseData.payload.requestId} Not found`);
+        console.log('CW Web Server', `Request id ${responseData.payload.call}-${responseData.payload.requestId} Not found`);
         response.end(`${responseData.payload.call}-${responseData.payload.requestId} Not found`);
       } else {
         response.end(httpResponse);

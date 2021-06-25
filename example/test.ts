@@ -1,8 +1,7 @@
 import { v1 as uuidv1 } from 'uuid';
 import { PayloadHTTP, Request } from './types';
-import { eventqueue, logger, types } from '../src';
+import { eventqueue, types } from '../src';
 import * as events from './events';
-const log = logger('Integration Tests');
 const options: types.ClockWorkOptions = {
   s3: {
     bucket: 'yourbuckettest',
@@ -21,19 +20,19 @@ const options: types.ClockWorkOptions = {
 };
 const cw = eventqueue(options);
 
-process.on('warning', (e) => log.warn(e.stack));
+process.on('warning', (e) => console.error('Example', e.stack));
 process.on('unhandledRejection', (err) => {
   try {
-    (log.error || console.error)(err); // tslint:disable-line no-console
+    console.error('Uncaught', err); // tslint:disable-line no-console
   } catch (e) {
-    console.log('Double uncaught:', e, err); // tslint:disable-line no-console
+    console.error('Double uncaught:', e, err); // tslint:disable-line no-console
   }
   process.exit(1); // tslint:disable-line no-process-exit
 });
 
 const init = async () => {
   await cw.initializeQueues(events);
-  log.info('Done initiate queues');
+  console.log('Done initiate queues');
   await testHTTPRequest();
 };
 

@@ -2,14 +2,12 @@ import { EventEmitter } from 'events';
 import { hostname } from 'os';
 import { ClockWorkOptions, Event } from './types';
 import { redis } from './redis';
-import { logger } from './logger';
 import { config } from './config';
 import { utils } from './utils';
 import { storage } from './storage';
 
 export const eventqueue = (options: ClockWorkOptions): any => {
   const hn = hostname();
-  const log = logger('Lib Event Queue');
   let allowedEvents = {};
 
   config.setConfiguration(options);
@@ -23,8 +21,8 @@ export const eventqueue = (options: ClockWorkOptions): any => {
     let eventList = {};
     for (const eventName in events) {
       if (events.hasOwnProperty(eventName)) {
-        log.info(`Adding Event ${eventName}`);
-        log.info(`Property names`, Object.keys(events[eventName]).toString());
+        console.log('Lib Event Queue', `Adding Event ${eventName}`);
+        console.log('Lib Event Queue', `Property names`, Object.keys(events[eventName]).toString());
 
         const eventObj: Record<string, unknown> = {};
         eventObj[eventName] = events[eventName];
@@ -32,7 +30,7 @@ export const eventqueue = (options: ClockWorkOptions): any => {
         eventList = Object.assign(eventList, eventObj);
       }
     }
-    log.info('Allowed Events:', Object.keys(eventList).toString());
+    console.log('Lib Event Queue', 'Allowed Events:', Object.keys(eventList).toString());
     return eventList;
   };
 
@@ -58,10 +56,10 @@ export const eventqueue = (options: ClockWorkOptions): any => {
       const evtListeners: EventEmitter[] = [];
 
       if (allowedEvents[funcName].listenFor) {
-        log.info('Allowed Events ListenFor', { listenFor: allowedEvents[funcName].listenFor });
+        console.log('Lib Event Queue', 'Allowed Events ListenFor', { listenFor: allowedEvents[funcName].listenFor });
         for (let j = 0; j < allowedEvents[funcName].listenFor.length; j += 1) {
           try {
-            log.info(`Listening for ${allowedEvents[funcName].listenFor[j]} to call ${funcName}`);
+            console.log('Lib Event Queue', `Listening for ${allowedEvents[funcName].listenFor[j]} to call ${funcName}`);
             await redis.xgroup(
               'CREATE',
               `${options.redisConfig.prefix}-stream-${funcName}`,
@@ -70,7 +68,7 @@ export const eventqueue = (options: ClockWorkOptions): any => {
               'MKSTREAM',
             );
           } catch (e) {
-            // log.info(`Failed add ${allowedEvents[funcName].listenFor[j]}`, e);
+            // console.log('Lib Event Queue', `Failed add ${allowedEvents[funcName].listenFor[j]}`, e);
             // Do nothing.  Group already exists.
           }
           await initializeStorage(`${options.redisConfig.prefix}-stream-${funcName}`);
@@ -94,7 +92,7 @@ export const eventqueue = (options: ClockWorkOptions): any => {
                 '>',
               );
             } catch (e) {
-              log.error('XReadGroup Error', e);
+              console.error('Lib Event Queue', 'XReadGroup Error', e);
             }
             if (response) {
               for (let entry = 0; entry < response.length; entry += 1) {
@@ -108,7 +106,7 @@ export const eventqueue = (options: ClockWorkOptions): any => {
                           const evtObj = utils.kvArrayToObject(arg, (a) => {
                             return JSON.parse(a);
                           });
-                          log.info('Got Event', { key, evtObj });
+                          console.log('Lib Event Queue', 'Got Event', { key, evtObj });
                           evtListener.emit('process', key, evtObj);
                           return evtObj;
                         },
@@ -122,7 +120,7 @@ export const eventqueue = (options: ClockWorkOptions): any => {
           }, 1000);
           evtListener.on('process', async (evtId: string, evt: Event<any>) => {
             try {
-              log.info('Processing Queue');
+              console.log('Lib Event Queue', 'Processing Queue');
               await processEvent(funcName, evt);
               await redis.xack(
                 `${options.redisConfig.prefix}-stream-${funcName}`,
@@ -131,7 +129,7 @@ export const eventqueue = (options: ClockWorkOptions): any => {
               );
             } catch (e) {
               // Do nothing
-              log.error('Error processing Event', e);
+              console.error('Lib Event Queue', 'Error processing Event', e);
             }
           });
           evtListeners.push(evtListener);
@@ -158,20 +156,20 @@ export const eventqueue = (options: ClockWorkOptions): any => {
    */
   const processEvent = async (funcName: string, evt: Event<any>) => {
     try {
-      log.info(`Received message on queue '${funcName}'`);
+      console.log('Lib Event Queue', `Received message on queue '${funcName}'`);
       evt.hops += 1;
 
       const canHandle = allowedEvents[funcName].filterEvent(evt);
 
       if (canHandle) {
-        log.info(`Executing ${funcName} state change`);
+        console.log('Lib Event Queue', `Executing ${funcName} state change`);
         await allowedEvents[funcName].handleStateChange(evt);
 
-        log.info(`Executing ${funcName} side effects`);
+        console.log('Lib Event Queue', `Executing ${funcName} side effects`);
         await allowedEvents[funcName].handleSideEffects(evt);
       }
     } catch (e) {
-      log.error('Error processing Event', e);
+      console.error('Lib Event Queue', 'Error processing Event', e);
     }
   };
   const clockworkObj = {

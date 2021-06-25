@@ -2,7 +2,6 @@
 
 export { config } from './lib/config';
 export { eventqueue } from './lib/eventqueue';
-export { logger } from './lib/logger';
 export { redis } from './lib/redis';
 export { s3 } from './lib/s3';
 export { storage } from './lib/storage';

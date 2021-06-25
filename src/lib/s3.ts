@@ -1,9 +1,6 @@
 import { S3 } from 'aws-sdk/clients/all';
 import { PutObjectRequest } from 'aws-sdk/clients/s3';
-import { logger } from './logger';
 import { config } from './config';
-
-const log = logger('S3');
 
 const getS3Object = (): S3 => {
   const s3Config = config.getConfiguration().s3;
@@ -27,10 +24,10 @@ const saveJsonFile = async (name: string, content: string): Promise<any> => {
   try {
     if (!testMode) {
       await getS3Object().putObject(putObject).promise();
-      log.info('Saved file:', { name });
+      console.log('S3', 'Saved file:', { name });
     }
   } catch (e) {
-    log.info('Failed to save the file:', { name, e });
+    console.log('S3', 'Failed to save the file:', { name, e });
     throw e;
   }
 };
@@ -50,10 +47,10 @@ const getJsonFile = async (name: string): Promise<any> => {
   try {
     const retVal = await getS3Object().getObject(request).promise();
     const data = retVal.Body.toString('utf-8');
-    log.info('Got file:', { name });
+    console.log('S3', 'Got file:', { name });
     return JSON.parse(data as any);
   } catch (e) {
-    log.info('Failed to get the file:', { name, e });
+    console.log('S3', 'Failed to get the file:', { name, e });
     throw e;
   }
 };
@@ -74,7 +71,7 @@ const listFiles = async (folder: string, continuationToken: string = null): Prom
       ContinuationToken: continuationToken,
     };
 
-    log.info(`Getting files from ${folder}, ${continuationToken}`, bucket);
+    console.log('S3', `Getting files from ${folder}, ${continuationToken}`, bucket);
 
     const retVal = await getS3Object().listObjectsV2(request).promise();
     if (retVal.Contents?.length > 0) {
@@ -91,7 +88,7 @@ const listFiles = async (folder: string, continuationToken: string = null): Prom
     }
     return result;
   } catch (e) {
-    log.error(`Failed to get the folder content: ${folder}`, { e });
+    console.error('S3', `Failed to get the folder content: ${folder}`, { e });
     throw e;
   }
 };
@@ -105,9 +102,9 @@ const uploadBlobFile = async (folder: string, fileName: string, blob: Buffer) =>
   };
   try {
     await getS3Object().putObject(putObject).promise();
-    log.info('Saved file:', { fileName });
+    console.log('S3', 'Saved file:', { fileName });
   } catch (e) {
-    log.info('Failed to save the file:', { fileName, e });
+    console.log('S3', 'Failed to save the file:', { fileName, e });
     throw e;
   }
 

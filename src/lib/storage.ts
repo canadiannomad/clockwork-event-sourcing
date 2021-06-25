@@ -1,16 +1,17 @@
 import { s3 } from './s3';
 import { redis } from './redis';
 import { utils } from './utils';
-import { logger } from './logger';
-
-const log = logger('Lib Storage');
 
 const addEvent = async (stream: string, event: any): Promise<any> => {
-  log.info(`Adding event to redis ${stream}`);
+  console.log('Lib Storage', `Adding event to redis ${stream}`);
   event.stored = true;
   const id = await redisAdd(event, stream);
-  log.info(`Adding event to S3: events/${stream}/${id}`);
+  console.log('Lib Storage', `Adding event to S3: events/${stream}/${id}`);
+  try {
   await s3.saveJsonFile(`events/${stream}/${id}`, event);
+  } catch (e) {
+    console.error('Lib Storage', 'Saving event failed.');
+  }
   return event;
 };
 
