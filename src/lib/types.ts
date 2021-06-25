@@ -9,11 +9,11 @@ export interface ClockWorkOptions {
 
 export interface S3Config {
   bucket: string;
-  accessKeyId: string;
-  secretAccessKey: string;
-  endpoint: string;
-  s3ForcePathStyle: boolean;
-  signatureVersion: string;
+  accessKeyId?: string;
+  secretAccessKey?: string;
+  endpoint?: string;
+  s3ForcePathStyle?: boolean;
+  signatureVersion?: string;
 }
 
 export interface RedisConfig {
