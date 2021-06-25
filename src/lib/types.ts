@@ -34,7 +34,7 @@ export interface Event<T> {
   sourceVersion: string;
   date: string;
   hops: number;
-  cost: string;
+  cost?: string;
   rawPayload: any;
   payload: T;
   stored?: boolean;
