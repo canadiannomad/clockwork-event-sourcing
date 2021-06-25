@@ -19,7 +19,7 @@ services:
       - MINIO_ACCESS_KEY=minio
       - MINIO_SECRET_KEY=minio123
       - MINIO_DIR=/data
-
+  
   clockwork-event-sourcing:
       build: .
       image: "clockwork-event-sourcing"

@@ -24,7 +24,6 @@ const saveJsonFile = async (name: string, content: string): Promise<any> => {
     Body: JSON.stringify(content),
     Key: `${name}.json`,
   };
-  log.info(`Saving file ${name}`, { putObject });
   try {
     if (!testMode) {
       await getS3Object().putObject(putObject).promise();
@@ -97,4 +96,21 @@ const listFiles = async (folder: string, continuationToken: string = null): Prom
   }
 };
 
-export const s3 = { saveJsonFile, getJsonFile, listFiles };
+const uploadBlobFile = async (folder: string, fileName: string, blob: Buffer) => {
+  const bucket = config.getConfiguration().s3.bucket;
+  const putObject: PutObjectRequest = {
+    Bucket: bucket,
+    Body: blob,
+    Key: `${folder}/${fileName}`,
+  };
+  try {
+    await getS3Object().putObject(putObject).promise();
+    log.info('Saved file:', { fileName });
+  } catch (e) {
+    log.info('Failed to save the file:', { fileName, e });
+    throw e;
+  }
+
+}
+
+export const s3 = { saveJsonFile, getJsonFile, listFiles, uploadBlobFile };
