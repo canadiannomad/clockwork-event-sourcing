@@ -12,7 +12,7 @@ const promisify = util.promisify;
 
 let client: ioredis;
 
-const redisConnect = (host: string, password: string, port = 6379) => {
+const redisConnect = (host: string, password: string, port = 6379, tls = true) => {
   return new Promise((resolve:any) => {
     const config: any = {
       host,
@@ -20,12 +20,14 @@ const redisConnect = (host: string, password: string, port = 6379) => {
     };
     if (password) {
       config.password = password;
-      config.tls = {
-        checkServerIdentity: () => {
-          // skip certificate hostname validation
-          return undefined;
-        },
-      };
+      if (tls) {
+        config.tls = {
+          checkServerIdentity: () => {
+            // skip certificate hostname validation
+            return undefined;
+          },
+        };
+      }
     }
     client = new ioredis(config);
 
@@ -55,7 +57,7 @@ const redisClient = (func: string) => {
       const redisConfig = config.getConfiguration().redisConfig;
       log.info('Redis Auth Starting');
       try {
-        await redisConnect(redisConfig.host, redisConfig.password, redisConfig.port);
+        await redisConnect(redisConfig.host, redisConfig.password, redisConfig.port, redisConfig.tls);
       } catch (e) {
         log.error('Redis Auth failed:', e);
         throw e;

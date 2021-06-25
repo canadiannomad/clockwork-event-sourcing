@@ -20,6 +20,7 @@ export interface RedisConfig {
   host: string;
   password?: string;
   port?: number;
+  tls?: boolean;
   prefix: string;
 }
 
