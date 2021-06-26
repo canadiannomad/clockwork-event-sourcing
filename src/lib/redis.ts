@@ -46,23 +46,6 @@ const redisConnect = (host: string, password: string, port = 6379, tls = true, c
 
 
     }
-    const config: any = {
-      host,
-      port,
-    };
-    if (password) {
-      config.password = password;
-      if (tls) {
-        config.tls = {
-          checkServerIdentity: () => {
-            // skip certificate hostname validation
-            return undefined;
-          },
-        };
-      }
-    }
-
-    client = cluster ? new ioredis.Cluster(config) : new ioredis(config);
 
     client.on('error', (err: any) => {
       console.error('Lib Redis', 'REDIS CONNECT error ', err);
