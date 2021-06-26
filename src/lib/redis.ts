@@ -12,6 +12,40 @@ let client: ioredis;
 
 const redisConnect = (host: string, password: string, port = 6379, tls = true, cluster = false) => {
   return new Promise((resolve:any) => {
+    if (cluster) {
+      const redisOptions: Record<string, any> = {};
+      if (password) {
+        redisOptions.password = password;
+      }
+      if (tls) {
+        redisOptions.tls = {
+          checkServerIdentity: () => {
+            // skip certificate hostname validation
+            return undefined;
+          },
+        };
+      }
+      client = new ioredis.Cluster([{host, port}], { redisOptions });
+    } else {
+      const config: any = {
+        host,
+        port,
+      };
+      if (password) {
+        config.password = password;
+      }
+      if (tls) {
+        config.tls = {
+          checkServerIdentity: () => {
+            // skip certificate hostname validation
+            return undefined;
+          },
+        };
+      }
+      client = new ioredis(config);
+
+
+    }
     const config: any = {
       host,
       port,
