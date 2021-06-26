@@ -21,6 +21,7 @@ export interface RedisConfig {
   password?: string;
   port?: number;
   tls?: boolean;
+  cluster?: boolean;
   prefix: string;
 }
 

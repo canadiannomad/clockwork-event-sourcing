@@ -10,7 +10,7 @@ const promisify = util.promisify;
 
 let client: ioredis;
 
-const redisConnect = (host: string, password: string, port = 6379, tls = true) => {
+const redisConnect = (host: string, password: string, port = 6379, tls = true, cluster = false) => {
   return new Promise((resolve:any) => {
     const config: any = {
       host,
@@ -27,7 +27,7 @@ const redisConnect = (host: string, password: string, port = 6379, tls = true) =
         };
       }
     }
-    client = new ioredis(config);
+    client = cluster ? new ioredis.cluster(config) : new ioredis(config);
 
     client.on('error', (err: any) => {
       console.error('Lib Redis', 'REDIS CONNECT error ', err);
@@ -55,7 +55,7 @@ const redisClient = (func: string) => {
       const redisConfig = config.getConfiguration().redisConfig;
       console.log('Lib Redis', 'Redis Auth Starting');
       try {
-        await redisConnect(redisConfig.host, redisConfig.password, redisConfig.port, redisConfig.tls);
+        await redisConnect(redisConfig.host, redisConfig.password, redisConfig.port, redisConfig.tls, redisConfig.cluster);
       } catch (e) {
         console.error('Lib Redis', 'Redis Auth failed:', e);
         throw e;
