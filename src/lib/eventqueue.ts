@@ -44,13 +44,13 @@ export default (options: ClockWorkOptions | null = null): ClockWorkObject => {
    * @param events - The events array.
    * @return The transformed object
    */
-  const getAllowedEvents = (events: Record<string, unknown>) => {
+  const getAllowedEvents = (events: Record<string, any>) => {
     let eventList = {};
     Object.keys(events).forEach((eventName) => {
       console.log('Lib Event Queue', `Adding Event ${eventName}`);
       console.log('Lib Event Queue', `Property names`, Object.keys(events[eventName]).toString());
 
-      const eventObj: Record<string, unknown> = {};
+      const eventObj: Record<string, any> = {};
       eventObj[eventName] = events[eventName];
 
       eventList = Object.assign(eventList, eventObj);
