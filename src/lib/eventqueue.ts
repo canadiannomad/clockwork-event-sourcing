@@ -21,21 +21,17 @@ export default (options: ClockWorkOptions | null = null): ClockWorkObject => {
    * @param {Event<any>}  evt - The incoming event.
    */
   const processEvent = async (funcName: string, evt: Event<any>) => {
-    try {
-      console.log('Lib Event Queue', `Received message on queue '${funcName}'`);
-      evt.hops += 1; // eslint-disable-line no-param-reassign
+    console.log('Lib Event Queue', `Received message on queue '${funcName}'`);
+    evt.hops += 1; // eslint-disable-line no-param-reassign
 
-      const canHandle = allowedEvents[funcName].filterEvent(evt);
+    const canHandle = allowedEvents[funcName].filterEvent(evt);
 
-      if (canHandle) {
-        console.log('Lib Event Queue', `Executing ${funcName} state change`);
-        await allowedEvents[funcName].handleStateChange(evt);
+    if (canHandle) {
+      console.log('Lib Event Queue', `Executing ${funcName} state change`);
+      await allowedEvents[funcName].handleStateChange(evt);
 
-        console.log('Lib Event Queue', `Executing ${funcName} side effects`);
-        await allowedEvents[funcName].handleSideEffects(evt);
-      }
-    } catch (e) {
-      console.error('Lib Event Queue', 'Error processing Event', e);
+      console.log('Lib Event Queue', `Executing ${funcName} side effects`);
+      await allowedEvents[funcName].handleSideEffects(evt);
     }
   };
 
