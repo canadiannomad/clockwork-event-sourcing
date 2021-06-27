@@ -13,11 +13,11 @@ const addEvent = async (stream: string, event: Event<any>): Promise<any> => {
   event.stored = true; // eslint-disable-line no-param-reassign
   const id = await redisAdd(event, stream);
   console.log('Lib Storage', `Adding event to S3: events/${stream}/${id}`);
-  try {
-    await s3.saveJsonFile(`events/${stream}/${id}`, JSON.stringify(event));
-  } catch (e) {
+
+  // Save to S3 asynchronously
+  s3.saveJsonFile(`events/${stream}/${id}`, JSON.stringify(event)).catch((_e) => {
     console.error('Lib Storage', 'Saving event failed.');
-  }
+  });
   return event;
 };
 
