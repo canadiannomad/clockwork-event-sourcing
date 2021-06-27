@@ -6,14 +6,12 @@ import config from './config';
 import utils from './utils';
 import storage from './storage';
 
-export default (options: ClockWorkOptions | null = null): ClockWorkObject => {
+export default (options: ClockWorkOptions | null): ClockWorkObject => {
   const hn = hostname();
   let allowedEvents = {};
 
   if (options) {
     config.setConfiguration(options);
-  } else {
-    options = config.getConfiguration(); // eslint-disable-line no-param-reassign
   }
 
   /**
@@ -89,8 +87,8 @@ export default (options: ClockWorkOptions | null = null): ClockWorkObject => {
             console.log('Lib Event Queue', `Listening for ${allowedEvents[funcName].listenFor[j]} to call ${funcName}`);
             await redis.xgroup(
               'CREATE',
-              `${options.redisConfig.prefix}-stream-${funcName}`,
-              `${options.redisConfig.prefix}-cg-${allowedEvents[funcName].listenFor[j]}`,
+              `${config.getConfiguration().redisConfig.prefix}-stream-${funcName}`,
+              `${config.getConfiguration().redisConfig.prefix}-cg-${allowedEvents[funcName].listenFor[j]}`,
               '$',
               'MKSTREAM',
             );
@@ -98,17 +96,17 @@ export default (options: ClockWorkOptions | null = null): ClockWorkObject => {
             // console.log('Lib Event Queue', `Failed add ${allowedEvents[funcName].listenFor[j]}`, e);
             // Do nothing.  Group already exists.
           }
-          await initializeStorage(`${options.redisConfig.prefix}-stream-${funcName}`);
+          await initializeStorage(`${config.getConfiguration().redisConfig.prefix}-stream-${funcName}`);
         }
         for (let j = 0; j < allowedEvents[funcName].listenFor.length; j += 1) {
           const evtListener = new EventEmitter();
           setInterval(async () => {
             let response = [];
-            const streamName = `${options.redisConfig.prefix}-stream-${funcName}`;
+            const streamName = `${config.getConfiguration().redisConfig.prefix}-stream-${funcName}`;
             try {
               response = await redis.xreadgroup(
                 'GROUP',
-                `${options.redisConfig.prefix}-cg-${allowedEvents[funcName].listenFor[j]}`,
+                `${config.getConfiguration().redisConfig.prefix}-cg-${allowedEvents[funcName].listenFor[j]}`,
                 `${hn}-${funcName}-${funcName}`,
                 // 'BLOCK',
                 // '0',
@@ -145,8 +143,8 @@ export default (options: ClockWorkOptions | null = null): ClockWorkObject => {
               console.log('Lib Event Queue', 'Processing Queue');
               await processEvent(funcName, evt);
               await redis.xack(
-                `${options.redisConfig.prefix}-stream-${funcName}`,
-                `${options.redisConfig.prefix}-cg-${allowedEvents[funcName].listenFor[j]}`,
+                `${config.getConfiguration().redisConfig.prefix}-stream-${funcName}`,
+                `${config.getConfiguration().redisConfig.prefix}-cg-${allowedEvents[funcName].listenFor[j]}`,
                 evtId,
               );
             } catch (e) {
@@ -167,7 +165,7 @@ export default (options: ClockWorkOptions | null = null): ClockWorkObject => {
    * @return {Promise<any>} A promise.
    */
   const send = async (funcName: string, event: Event<any>): Promise<any> =>
-    storage.addEvent(`${options.redisConfig.prefix}-stream-${funcName}`, event);
+    storage.addEvent(`${config.getConfiguration().redisConfig.prefix}-stream-${funcName}`, event);
 
   const clockworkObj: ClockWorkObject = {
     initializeQueues,
