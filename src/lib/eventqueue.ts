@@ -12,6 +12,8 @@ export default (options: ClockWorkOptions | null = null): ClockWorkObject => {
 
   if (options) {
     config.setConfiguration(options);
+  } else {
+    options = config.getConfiguration(); // eslint-disable-line no-param-reassign
   }
 
   /**
