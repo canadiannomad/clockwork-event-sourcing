@@ -6,7 +6,7 @@ import config from './config';
 import utils from './utils';
 import storage from './storage';
 
-export default (options: ClockWorkOptions | null): ClockWorkObject => {
+export default (options: ClockWorkOptions | null = null): ClockWorkObject => {
   const hn = hostname();
   let allowedEvents = {};
 
