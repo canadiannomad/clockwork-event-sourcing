@@ -10,23 +10,23 @@
 import { redis, types } from '../../../src';
 import { PayloadHTTP, Request } from '../../types';
 
-export class HelloWorld implements types.ClockWorkEvent<PayloadHTTP> {
-  
+export default class HelloWorld implements types.ClockWorkEvent<PayloadHTTP> {
   listenFor: string[] = ['PayloadHTTP'];
-  stateKey:string = 'hello-world-state';
+
+  stateKey = 'hello-world-state';
 
   filterEvent = (event: types.Event<PayloadHTTP>): boolean => {
     const input = event.payload;
-    return input.call == 'helloworld';
+    return input.call === 'helloworld';
   };
 
   handleStateChange = async (event: types.Event<PayloadHTTP>): Promise<any> => {
     const input = event.payload;
-    const requestId = input.requestId;
+    const { requestId } = input;
 
     const requestKey = `${input.call}-${requestId}`;
-    let request = {} as Request;
-    let helloWorldState = (await redis.get(this.stateKey)) || 0;
+    const request = {} as Request;
+    const helloWorldState = (await redis.get(this.stateKey)) || 0;
 
     request.output = {
       body: {
@@ -43,8 +43,8 @@ export class HelloWorld implements types.ClockWorkEvent<PayloadHTTP> {
     return request.output;
   };
 
-  handleSideEffects = async (event: types.Event<PayloadHTTP>): Promise<any> => {
-    let state = await redis.get(this.stateKey);
+  handleSideEffects = async (_event: types.Event<PayloadHTTP>): Promise<any> => {
+    const state = await redis.get(this.stateKey);
     if (state != null) {
       await redis.incr(this.stateKey);
     } else {

@@ -1,6 +1,6 @@
 import { S3 } from 'aws-sdk/clients/all';
 import { PutObjectRequest } from 'aws-sdk/clients/s3';
-import { config } from './config';
+import config from './config';
 
 const getS3Object = (): S3 => {
   const s3Config = config.getConfiguration().s3;
@@ -14,8 +14,8 @@ const getS3Object = (): S3 => {
  * @return {Promise<any>} Promise that returns the S3 response.
  */
 const saveJsonFile = async (name: string, content: string): Promise<any> => {
-  const bucket = config.getConfiguration().s3.bucket;
-  const testMode = config.getConfiguration().testMode;
+  const { bucket } = config.getConfiguration().s3;
+  const { testMode } = config.getConfiguration();
   const putObject: PutObjectRequest = {
     Bucket: bucket,
     Body: JSON.stringify(content),
@@ -38,7 +38,7 @@ const saveJsonFile = async (name: string, content: string): Promise<any> => {
  * @return {Promise<any>} Promise that returns the file content.
  */
 const getJsonFile = async (name: string): Promise<any> => {
-  const bucket = config.getConfiguration().s3.bucket;
+  const { bucket } = config.getConfiguration().s3;
   const request: S3.GetObjectRequest = {
     Bucket: bucket,
     Key: name,
@@ -64,7 +64,7 @@ const getJsonFile = async (name: string): Promise<any> => {
 const listFiles = async (folder: string, continuationToken: string = null): Promise<any> => {
   try {
     let result = [];
-    const bucket = config.getConfiguration().s3.bucket;
+    const { bucket } = config.getConfiguration().s3;
     const request = {
       Bucket: bucket,
       Prefix: `${folder}/`,
@@ -75,9 +75,7 @@ const listFiles = async (folder: string, continuationToken: string = null): Prom
 
     const retVal = await getS3Object().listObjectsV2(request).promise();
     if (retVal.Contents?.length > 0) {
-      const files = retVal.Contents.map((file) => {
-        return file.Key.replace(`${folder}/`, '');
-      });
+      const files = retVal.Contents.map((file) => file.Key.replace(`${folder}/`, ''));
       result = result.concat(files);
     }
     if (retVal?.IsTruncated) {
@@ -93,8 +91,8 @@ const listFiles = async (folder: string, continuationToken: string = null): Prom
   }
 };
 
-const uploadBlobFile = async (folder: string, fileName: string, blob: Buffer) => {
-  const bucket = config.getConfiguration().s3.bucket;
+const uploadBlobFile = async (folder: string, fileName: string, blob: Buffer): Promise<void> => {
+  const { bucket } = config.getConfiguration().s3;
   const putObject: PutObjectRequest = {
     Bucket: bucket,
     Body: blob,
@@ -107,7 +105,6 @@ const uploadBlobFile = async (folder: string, fileName: string, blob: Buffer) =>
     console.log('S3', 'Failed to save the file:', { fileName, e });
     throw e;
   }
+};
 
-}
-
-export const s3 = { saveJsonFile, getJsonFile, listFiles, uploadBlobFile };
+export default { saveJsonFile, getJsonFile, listFiles, uploadBlobFile };

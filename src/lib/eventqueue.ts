@@ -1,35 +1,60 @@
 import { EventEmitter } from 'events';
 import { hostname } from 'os';
-import { ClockWorkOptions, Event } from './types';
-import { redis } from './redis';
-import { config } from './config';
-import { utils } from './utils';
-import { storage } from './storage';
+import { ClockWorkOptions, Event, ClockWorkObject } from './types';
+import redis from './redis';
+import config from './config';
+import utils from './utils';
+import storage from './storage';
 
-export const eventqueue = (options: ClockWorkOptions): any => {
+export default (options: ClockWorkOptions | null = null): ClockWorkObject => {
   const hn = hostname();
   let allowedEvents = {};
 
-  config.setConfiguration(options);
+  if (options) {
+    config.setConfiguration(options);
+  }
+
+  /**
+   * This function process an incoming event.
+   * Will increase the event hops each time the event is processed.
+   * @param {string}  funcName - The function name.
+   * @param {Event<any>}  evt - The incoming event.
+   */
+  const processEvent = async (funcName: string, evt: Event<any>) => {
+    try {
+      console.log('Lib Event Queue', `Received message on queue '${funcName}'`);
+      evt.hops += 1; // eslint-disable-line no-param-reassign
+
+      const canHandle = allowedEvents[funcName].filterEvent(evt);
+
+      if (canHandle) {
+        console.log('Lib Event Queue', `Executing ${funcName} state change`);
+        await allowedEvents[funcName].handleStateChange(evt);
+
+        console.log('Lib Event Queue', `Executing ${funcName} side effects`);
+        await allowedEvents[funcName].handleSideEffects(evt);
+      }
+    } catch (e) {
+      console.error('Lib Event Queue', 'Error processing Event', e);
+    }
+  };
 
   /**
    * This function gets a list of events and return the allowed functions
-   * @param {any}  events - The events array.
-   * @return {any} The transformed object
+   * @param events - The events array.
+   * @return The transformed object
    */
-  const getAllowedEvents = (events) => {
+  const getAllowedEvents = (events: Record<string, unknown>) => {
     let eventList = {};
-    for (const eventName in events) {
-      if (events.hasOwnProperty(eventName)) {
-        console.log('Lib Event Queue', `Adding Event ${eventName}`);
-        console.log('Lib Event Queue', `Property names`, Object.keys(events[eventName]).toString());
+    Object.keys(events).forEach((eventName) => {
+      console.log('Lib Event Queue', `Adding Event ${eventName}`);
+      console.log('Lib Event Queue', `Property names`, Object.keys(events[eventName]).toString());
 
-        const eventObj: Record<string, unknown> = {};
-        eventObj[eventName] = events[eventName];
+      const eventObj: Record<string, unknown> = {};
+      eventObj[eventName] = events[eventName];
 
-        eventList = Object.assign(eventList, eventObj);
-      }
-    }
+      eventList = Object.assign(eventList, eventObj);
+    });
     console.log('Lib Event Queue', 'Allowed Events:', Object.keys(eventList).toString());
     return eventList;
   };
@@ -37,18 +62,18 @@ export const eventqueue = (options: ClockWorkOptions): any => {
   /**
    * This function initializes the event queue storage.
    * Gets events from S3 and cache them in Redis stream.
-   * @param {any}  events - The events array.
+   * @param stream - The events array.
    */
-  const initializeStorage = async (stream): Promise<void> => {
+  const initializeStorage = async (stream: any): Promise<void> => {
     await storage.getEvents(stream);
   };
 
   /**
    * This function initializes the event queues.
    * Each second will be reading events from the stream group if any.
-   * @param {any}  events - The events array.
+   * @param events - The events array.
    */
-  const initializeQueues = async (evts): Promise<void> => {
+  const initializeQueues = async (evts: any): Promise<void> => {
     allowedEvents = getAllowedEvents(evts);
     const allowedEventsNames = Object.keys(allowedEvents);
     for (let i = 0; i < allowedEventsNames.length; i += 1) {
@@ -83,8 +108,8 @@ export const eventqueue = (options: ClockWorkOptions): any => {
                 'GROUP',
                 `${options.redisConfig.prefix}-cg-${allowedEvents[funcName].listenFor[j]}`,
                 `${hn}-${funcName}-${funcName}`,
-                //'BLOCK',
-                //'0',
+                // 'BLOCK',
+                // '0',
                 'COUNT',
                 '1',
                 'STREAMS',
@@ -100,17 +125,12 @@ export const eventqueue = (options: ClockWorkOptions): any => {
                   const newArray: Record<string, Array<any>>[] = [];
                   for (let evtPos = 0; evtPos < arg.length; evtPos += 1) {
                     newArray.push(
-                      utils.kvArrayToObject(
-                        arg[evtPos],
-                        (arg: Array<string>, key: string): Record<string, any> => {
-                          const evtObj = utils.kvArrayToObject(arg, (a) => {
-                            return JSON.parse(a);
-                          });
-                          console.log('Lib Event Queue', 'Got Event', { key, evtObj });
-                          evtListener.emit('process', key, evtObj);
-                          return evtObj;
-                        },
-                      ),
+                      utils.kvArrayToObject(arg[evtPos], (aarg: Array<string>, key: string): Record<string, any> => {
+                        const evtObj = utils.kvArrayToObject(aarg, (a) => JSON.parse(a));
+                        console.log('Lib Event Queue', 'Got Event', { key, evtObj });
+                        evtListener.emit('process', key, evtObj);
+                        return evtObj;
+                      }),
                     );
                   }
                   return newArray;
@@ -144,35 +164,10 @@ export const eventqueue = (options: ClockWorkOptions): any => {
    * @param {Event<any>}  event - The event.
    * @return {Promise<any>} A promise.
    */
-  const send = async (funcName: string, event: Event<any>): Promise<any> => {
-    return await storage.addEvent(`${options.redisConfig.prefix}-stream-${funcName}`, event);
-  };
+  const send = async (funcName: string, event: Event<any>): Promise<any> =>
+    storage.addEvent(`${options.redisConfig.prefix}-stream-${funcName}`, event);
 
-  /**
-   * This function process an incoming event.
-   * Will increase the event hops each time the event is processed.
-   * @param {string}  funcName - The function name.
-   * @param {Event<any>}  evt - The incoming event.
-   */
-  const processEvent = async (funcName: string, evt: Event<any>) => {
-    try {
-      console.log('Lib Event Queue', `Received message on queue '${funcName}'`);
-      evt.hops += 1;
-
-      const canHandle = allowedEvents[funcName].filterEvent(evt);
-
-      if (canHandle) {
-        console.log('Lib Event Queue', `Executing ${funcName} state change`);
-        await allowedEvents[funcName].handleStateChange(evt);
-
-        console.log('Lib Event Queue', `Executing ${funcName} side effects`);
-        await allowedEvents[funcName].handleSideEffects(evt);
-      }
-    } catch (e) {
-      console.error('Lib Event Queue', 'Error processing Event', e);
-    }
-  };
-  const clockworkObj = {
+  const clockworkObj: ClockWorkObject = {
     initializeQueues,
     send,
   };

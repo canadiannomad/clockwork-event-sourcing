@@ -1,7 +1,8 @@
 import { v1 as uuidv1 } from 'uuid';
-import { PayloadHTTP, Request } from './types';
+import { PayloadHTTP } from './types';
 import { eventqueue, types } from '../src';
 import * as events from './events';
+
 const options: types.ClockWorkOptions = {
   s3: {
     bucket: 'yourbuckettest',
@@ -29,12 +30,6 @@ process.on('unhandledRejection', (err) => {
   }
   process.exit(1); // tslint:disable-line no-process-exit
 });
-
-const init = async () => {
-  await cw.initializeQueues(events);
-  console.log('Done initiate queues');
-  await testHTTPRequest();
-};
 
 const testHTTPRequest = async () => {
   const payload: PayloadHTTP = {
@@ -72,8 +67,14 @@ const testHTTPRequest = async () => {
     payload,
   };
 
-  var response = await cw.send(payload.call, evt);
+  await cw.send(payload.call, evt);
   console.log(`send event`, evt);
+};
+
+const init = async () => {
+  await cw.initializeQueues(events);
+  console.log('Done initiate queues');
+  await testHTTPRequest();
 };
 
 init();

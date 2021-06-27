@@ -24,9 +24,18 @@
   },
   "devDependencies": {
     "@types/aws-sdk": "^2.7.0",
+    "@types/ioredis": "^4.26.4",
     "@types/node": "^12.20.15",
     "@types/uuid": "^8.3.0",
-    "eslint": "^6.8.0",
+    "@typescript-eslint/eslint-plugin": "^4.28.0",
+    "@typescript-eslint/parser": "^4.28.0",
+    "eslint": "^7.29.0",
+    "eslint-config-airbnb-base": "^14.2.1",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-import-resolver-typescript": "^2.4.0",
+    "eslint-plugin-import": "^2.23.4",
+    "eslint-plugin-prettier": "^3.4.0",
+    "prettier": "^2.3.2",
     "typescript": "^3.9.10"
   },
   "directories": {

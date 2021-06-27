@@ -11,7 +11,7 @@ const options: types.ClockWorkOptions = {
     s3ForcePathStyle: true,
     signatureVersion: 'v4',
   },
-  events: events,
+  events,
   redisConfig: {
     host: 'redis',
     password: '',

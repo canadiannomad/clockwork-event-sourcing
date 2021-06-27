@@ -1,12 +1,5 @@
 export type LoggerFunction = (...args: any[]) => void;
 
-export interface ClockWorkOptions {
-  s3: S3Config;
-  events?: any;
-  testMode?: boolean;
-  redisConfig?: RedisConfig;
-}
-
 export interface S3Config {
   bucket: string;
   accessKeyId?: string;
@@ -25,7 +18,14 @@ export interface RedisConfig {
   prefix: string;
 }
 
-export enum EventDirection {
+export interface ClockWorkOptions {
+  s3: S3Config;
+  events?: any;
+  testMode?: boolean;
+  redisConfig?: RedisConfig;
+}
+
+export enum EventDirection { // eslint-disable-line no-shadow
   Incoming = 'INCOMING',
   Outgoing = 'OUTGOING',
 }
@@ -42,7 +42,7 @@ export interface Event<T> {
   stored?: boolean;
 }
 
-export enum PayloadHTTPMethod {
+export enum PayloadHTTPMethod { // eslint-disable-line no-shadow
   Get = 'GET',
   Post = 'POST',
 }
@@ -52,4 +52,9 @@ export interface ClockWorkEvent<T> {
   filterEvent(event: Event<T>): boolean;
   handleStateChange(event: Event<T>);
   handleSideEffects(event: Event<T>);
+}
+
+export interface ClockWorkObject {
+  initializeQueues(evts: any): Promise<void>;
+  send(funcName: string, event: Event<any>): Promise<any>;
 }
