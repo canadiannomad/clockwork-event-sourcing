@@ -32,6 +32,8 @@ export default (options: ClockWorkOptions | null = null): ClockWorkObject => {
 
       console.log('Lib Event Queue', `Executing ${funcName} side effects`);
       await allowedEvents[funcName].handleSideEffects(evt);
+    } else {
+      console.warn('Event was not excuted because it was filtered.');
     }
   };
 

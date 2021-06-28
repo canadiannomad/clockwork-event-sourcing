@@ -10,7 +10,7 @@
 import { redis, types } from '../../../src';
 import { Request, PayloadHTTP, RequestObject, SimpleResponse } from '../../types';
 
-export default class Ping implements types.ClockWorkEvent<PayloadHTTP> {
+export default class implements types.ClockWorkEvent<PayloadHTTP> {
   listenFor: string[] = ['PayloadHTTP'];
 
   stateKey = 'ping-state';
