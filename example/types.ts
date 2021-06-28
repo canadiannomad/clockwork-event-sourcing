@@ -1,3 +1,4 @@
+import { OutgoingHttpHeaders } from 'http';
 import { PayloadHTTPMethod } from '../src/lib/types';
 
 export interface Payload {
@@ -15,6 +16,14 @@ export interface PayloadHTTP extends Payload {
   body: any;
 }
 
+export type RequestObject = Record<string, any>;
+
 export interface Request {
-  output: any;
+  output: RequestObject;
+}
+
+export interface SimpleResponse {
+  customHeaders?: OutgoingHttpHeaders;
+  statusCode: number;
+  body: string;
 }

@@ -1,5 +1,5 @@
 import { eventqueue, types } from '../src';
-import * as events from './events';
+import events from './events';
 import webserver from './webserver';
 
 const options: types.ClockWorkOptions = {

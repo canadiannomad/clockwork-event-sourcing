@@ -1,7 +1,7 @@
 import { v1 as uuidv1 } from 'uuid';
 import { PayloadHTTP } from './types';
 import { eventqueue, types } from '../src';
-import * as events from './events';
+import events from './events';
 
 const options: types.ClockWorkOptions = {
   s3: {

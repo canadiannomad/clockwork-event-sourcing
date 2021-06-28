@@ -1,54 +1,50 @@
 /*
- * Event: HelloWorld
- * Description: Returns Hello World to an Async Request
+ * Event: Hello World
+ * Description: Returns HelloWorld++ to an Async Request
  * Input Payload: PayloadHTTP
- * Output Payload: Any
+ * Output Payload: any
  * Side Effects: Increase HelloWorld State
  * State Changes: Updates Async Request with Output
  * Next: None
  */
 import { redis, types } from '../../../src';
-import { PayloadHTTP, Request } from '../../types';
+import { Request, PayloadHTTP, RequestObject, SimpleResponse } from '../../types';
 
-export default class HelloWorld implements types.ClockWorkEvent<PayloadHTTP> {
+export default class Ping implements types.ClockWorkEvent<PayloadHTTP> {
   listenFor: string[] = ['PayloadHTTP'];
 
-  stateKey = 'hello-world-state';
+  stateKey = 'helloworld-state';
 
   filterEvent = (event: types.Event<PayloadHTTP>): boolean => {
     const input = event.payload;
-    return input.call === 'helloworld';
+    return input.call === 'helloworld' && event.sourceVersion === '0.0.1';
   };
 
-  handleStateChange = async (event: types.Event<PayloadHTTP>): Promise<any> => {
+  handleStateChange = async (_event: types.Event<PayloadHTTP>): Promise<RequestObject> => {
+    const pingState = parseInt((await redis.get(this.stateKey)) || '0', 10) + 1;
+    await redis.set(this.stateKey, pingState);
+    return { pingState };
+  };
+
+  handleSideEffects = async (event: types.Event<PayloadHTTP>): Promise<void> => {
     const input = event.payload;
     const { requestId } = input;
 
-    const requestKey = `${input.call}-${requestId}`;
+    const requestKey = `${process.env.REDIS_PREFIX}-response-${requestId}`;
     const request = {} as Request;
-    const helloWorldState = (await redis.get(this.stateKey)) || 0;
+    const pingState = parseInt((await redis.get(this.stateKey)) || '0', 10);
 
-    request.output = {
-      body: {
+    const output: SimpleResponse = {
+      body: JSON.stringify({
         message: 'Hello World',
-        helloWorldState,
-      },
-      headers: {
+        pingState,
+      }),
+      customHeaders: {
         'Content-Type': 'text/json',
       },
       statusCode: 200,
     };
-    await redis.set(`${requestKey}`, JSON.stringify(request), 'EX', 20);
-
-    return request.output;
-  };
-
-  handleSideEffects = async (_event: types.Event<PayloadHTTP>): Promise<any> => {
-    const state = await redis.get(this.stateKey);
-    if (state != null) {
-      await redis.incr(this.stateKey);
-    } else {
-      await redis.set(this.stateKey, 1);
-    }
+    request.output = output;
+    await redis.set(requestKey, JSON.stringify(request), 'EX', 20);
   };
 }

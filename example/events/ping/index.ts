@@ -8,7 +8,7 @@
  * Next: None
  */
 import { redis, types } from '../../../src';
-import { PayloadHTTP, Request } from '../../types';
+import { Request, PayloadHTTP, RequestObject, SimpleResponse } from '../../types';
 
 export default class Ping implements types.ClockWorkEvent<PayloadHTTP> {
   listenFor: string[] = ['PayloadHTTP'];
@@ -17,38 +17,34 @@ export default class Ping implements types.ClockWorkEvent<PayloadHTTP> {
 
   filterEvent = (event: types.Event<PayloadHTTP>): boolean => {
     const input = event.payload;
-    return input.call === 'ping';
+    return input.call === 'ping' && event.sourceVersion === '0.0.1';
   };
 
-  handleStateChange = async (event: types.Event<PayloadHTTP>): Promise<any> => {
+  handleStateChange = async (_event: types.Event<PayloadHTTP>): Promise<RequestObject> => {
+    const pingState = parseInt((await redis.get(this.stateKey)) || '0', 10) + 1;
+    await redis.set(this.stateKey, pingState);
+    return { pingState };
+  };
+
+  handleSideEffects = async (event: types.Event<PayloadHTTP>): Promise<void> => {
     const input = event.payload;
     const { requestId } = input;
 
-    const requestKey = `${input.call}-${requestId}`;
+    const requestKey = `${process.env.REDIS_PREFIX}-response-${requestId}`;
     const request = {} as Request;
-    const pingState = (await redis.get(this.stateKey)) || 0;
+    const pingState = parseInt((await redis.get(this.stateKey)) || '0', 10);
 
-    request.output = {
-      body: {
+    const output: SimpleResponse = {
+      body: JSON.stringify({
         message: 'Pong',
         pingState,
-      },
-      headers: {
+      }),
+      customHeaders: {
         'Content-Type': 'text/json',
       },
       statusCode: 200,
     };
-    await redis.set(`${requestKey}`, JSON.stringify(request), 'EX', 20);
-
-    return request.output;
-  };
-
-  handleSideEffects = async (_event: types.Event<PayloadHTTP>): Promise<any> => {
-    const state = await redis.get(this.stateKey);
-    if (state != null) {
-      await redis.incr(this.stateKey);
-    } else {
-      await redis.set(this.stateKey, 1);
-    }
+    request.output = output;
+    await redis.set(requestKey, JSON.stringify(request), 'EX', 20);
   };
 }
