@@ -20,13 +20,12 @@ export default class implements types.ClockWorkEvent<PayloadHTTP> {
     return input.call === 'ping' && event.sourceVersion === '0.0.1';
   };
 
-  handleStateChange = async (_event: types.Event<PayloadHTTP>): Promise<RequestObject> => {
+  handleStateChange = async (_event: types.Event<PayloadHTTP>): Promise<void> => {
     const pingState = parseInt((await redis.get(this.stateKey)) || '0', 10) + 1;
     await redis.set(this.stateKey, pingState);
-    return { pingState };
   };
 
-  handleSideEffects = async (event: types.Event<PayloadHTTP>): Promise<void> => {
+  handleSideEffects = async (event: types.Event<PayloadHTTP>): Promise<null> => {
     const input = event.payload;
     const { requestId } = input;
 
@@ -45,6 +44,7 @@ export default class implements types.ClockWorkEvent<PayloadHTTP> {
       statusCode: 200,
     };
     request.output = output;
-    await redis.set(requestKey, JSON.stringify(request), 'EX', 20);
+    redis.set(requestKey, JSON.stringify(request), 'EX', 20);
+    return null;
   };
 }

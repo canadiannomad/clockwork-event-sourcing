@@ -15,6 +15,15 @@ export default (options: ClockWorkOptions | null = null): ClockWorkObject => {
   }
 
   /**
+   * This function sends event data to the events queue.
+   * @param {string}  funcName - The function name.
+   * @param {Event<any>}  event - The event.
+   * @return {Promise<any>} A promise.
+   */
+  const send = async (funcName: string, event: Event<any>): Promise<any> =>
+    storage.addEvent(`${config.getConfiguration().redisConfig.prefix}-stream-${funcName}`, event);
+
+  /**
    * This function process an incoming event.
    * Will increase the event hops each time the event is processed.
    * @param {string}  funcName - The function name.
@@ -25,13 +34,22 @@ export default (options: ClockWorkOptions | null = null): ClockWorkObject => {
     evt.hops += 1; // eslint-disable-line no-param-reassign
 
     const canHandle = allowedEvents[funcName].filterEvent(evt);
-
     if (canHandle) {
       console.log('Lib Event Queue', `Executing ${funcName} state change`);
       await allowedEvents[funcName].handleStateChange(evt);
 
       console.log('Lib Event Queue', `Executing ${funcName} side effects`);
-      await allowedEvents[funcName].handleSideEffects(evt);
+      const newPayload = await allowedEvents[funcName].handleSideEffects(evt);
+      if (newPayload) {
+        console.log('Lib Event Queue', `Triggering new event from ${funcName}`, newPayload);
+        const newEvent = { ...evt };
+        newEvent.source = funcName;
+        newEvent.sourceVersion = allowedEvents[funcName].version || '0.0.1';
+        newEvent.date = new Date().toJSON();
+        newEvent.stored = false;
+        newEvent.payload = newPayload;
+        send(funcName, newEvent);
+      }
     } else {
       console.warn('Event was not excuted because it was filtered.');
     }
@@ -155,15 +173,6 @@ export default (options: ClockWorkOptions | null = null): ClockWorkObject => {
       }
     }
   };
-
-  /**
-   * This function sends event data to the events queue.
-   * @param {string}  funcName - The function name.
-   * @param {Event<any>}  event - The event.
-   * @return {Promise<any>} A promise.
-   */
-  const send = async (funcName: string, event: Event<any>): Promise<any> =>
-    storage.addEvent(`${config.getConfiguration().redisConfig.prefix}-stream-${funcName}`, event);
 
   const clockworkObj: ClockWorkObject = {
     initializeQueues,

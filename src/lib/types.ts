@@ -49,9 +49,10 @@ export enum PayloadHTTPMethod { // eslint-disable-line no-shadow
 
 export interface ClockWorkEvent<T> {
   listenFor: string[];
+  version?: string;
   filterEvent(event: Event<T>): boolean;
-  handleStateChange(event: Event<T>);
-  handleSideEffects(event: Event<T>);
+  handleStateChange(event: Event<T>): Promise<void>;
+  handleSideEffects(event: Event<T>): Promise<any>;
 }
 
 export interface ClockWorkObject {
