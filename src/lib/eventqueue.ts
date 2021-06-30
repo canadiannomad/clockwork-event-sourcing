@@ -86,10 +86,11 @@ export default (options: ClockWorkOptions | null = null): ClockWorkObject => {
 
   /**
    * This function initializes the event queues.
-   * Each second will be reading events from the stream group if any.
+   * Each 100ms will be reading events from the stream group if any.
    * @param events - The events array.
    */
-  const initializeQueues = async (evts: any): Promise<void> => {
+  const initializeQueues = async (evts: Array<any>): Promise<void> => {
+    if (!evts) return;
     allowedEvents = getAllowedEvents(evts);
     const allowedEventsNames = Object.keys(allowedEvents);
     for (let i = 0; i < allowedEventsNames.length; i += 1) {
@@ -153,7 +154,7 @@ export default (options: ClockWorkOptions | null = null): ClockWorkObject => {
                 });
               }
             }
-          }, 1000);
+          }, 100);
           evtListener.on('process', async (evtId: string, evt: Event<any>) => {
             try {
               console.log('Lib Event Queue', 'Processing Queue');
