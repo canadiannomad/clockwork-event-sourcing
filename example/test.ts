@@ -8,15 +8,17 @@ const options: types.ClockWorkOptions = {
     bucket: 'yourbuckettest',
     accessKeyId: 'minio',
     secretAccessKey: 'minio123',
-    endpoint: 'http://minio:9000',
+    endpoint: 'http://localhost:9000',
     s3ForcePathStyle: true,
     signatureVersion: 'v4',
   },
   testMode: true,
   events,
   redisConfig: {
-    host: '127.0.0.1',
+    host: 'localhost',
     prefix: 'test-clockwork',
+    cluster: false,
+    tls: false
   },
 };
 const cw = eventqueue(options);
