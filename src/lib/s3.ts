@@ -13,19 +13,18 @@ const getS3Object = (): S3 => {
  * @param {string}  content - The file content.
  * @return {Promise<any>} Promise that returns the S3 response.
  */
-const saveJsonFile = async (name: string, content: string): Promise<any> => {
+const saveJsonFile = async (name: string, content: string): Promise<void> => {
   const { bucket } = config.getConfiguration().s3;
   const { testMode } = config.getConfiguration();
+  if (testMode) return;
   const putObject: PutObjectRequest = {
     Bucket: bucket,
     Body: JSON.stringify(content),
     Key: `${name}.json`,
   };
   try {
-    if (!testMode) {
-      await getS3Object().putObject(putObject).promise();
-      console.log('S3', 'Saved file:', { name });
-    }
+    await getS3Object().putObject(putObject).promise();
+    console.log('S3', 'Saved file:', { name });
   } catch (e) {
     console.log('S3', 'Failed to save the file:', { name, e });
     throw e;
@@ -39,6 +38,8 @@ const saveJsonFile = async (name: string, content: string): Promise<any> => {
  */
 const getJsonFile = async (name: string): Promise<any> => {
   const { bucket } = config.getConfiguration().s3;
+  const { testMode } = config.getConfiguration();
+  if (testMode) return null;
   const request: S3.GetObjectRequest = {
     Bucket: bucket,
     Key: name,
@@ -61,7 +62,9 @@ const getJsonFile = async (name: string): Promise<any> => {
  * @param {string}  continuationToken - The continuation token.
  * @return {Promise<any>} Promise that returns the folder files list.
  */
-const listFiles = async (folder: string, continuationToken: string = null): Promise<any> => {
+const listFiles = async (folder: string, continuationToken: string = null): Promise<Array<any>> => {
+  const { testMode } = config.getConfiguration();
+  if (testMode) return [];
   try {
     let result = [];
     const { bucket } = config.getConfiguration().s3;
@@ -92,6 +95,8 @@ const listFiles = async (folder: string, continuationToken: string = null): Prom
 };
 
 const uploadBlobFile = async (folder: string, fileName: string, blob: Buffer): Promise<void> => {
+  const { testMode } = config.getConfiguration();
+  if (testMode) return;
   const { bucket } = config.getConfiguration().s3;
   const putObject: PutObjectRequest = {
     Bucket: bucket,
