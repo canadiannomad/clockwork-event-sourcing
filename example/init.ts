@@ -17,6 +17,8 @@ const options: types.ClockWorkOptions = {
     password: '',
     port: 6379,
     prefix: 'cw',
+    cluster: false,
+    tls: false
   },
 };
 
