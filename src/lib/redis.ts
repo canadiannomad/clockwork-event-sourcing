@@ -97,6 +97,7 @@ const redisClient =
   };
 
 export default {
+  flushall: redisClient('flushall'),
   exists: redisClient('exists'),
   del: redisClient('del'),
   get: redisClient('get'),
