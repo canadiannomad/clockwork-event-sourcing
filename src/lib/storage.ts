@@ -21,9 +21,14 @@ const addEvent = async (stream: string, event: Event<any>): Promise<any> => {
   return event;
 };
 
-const getS3Events = async (folder: string): Promise<any> => {
+type FileRetObject = {
+  file: string;
+  name: string;
+};
+
+const getS3Events = async (folder: string): Promise<FileRetObject[]> => {
   const fileNames = await s3.listFiles(`events/${folder}`);
-  const files = [];
+  const files: FileRetObject[] = [];
   for (const name of fileNames) {
     const file = await s3.getJsonFile(`events/${folder}/${name}`);
     console.log(JSON.stringify(file));
@@ -32,7 +37,8 @@ const getS3Events = async (folder: string): Promise<any> => {
   return files;
 };
 
-const getEvent = async (stream: string, key: string): Promise<any> => redis.xread('count', 1, 'streams', stream, key);
+const getEvent = async (stream: string, key: string): Promise<string> =>
+  redis.xread('count', 1, 'streams', stream, key);
 
 const getEvents = async (stream: string): Promise<any> => {
   const events = await redis.xread('count', 0, 'streams', stream, '0');
@@ -40,7 +46,7 @@ const getEvents = async (stream: string): Promise<any> => {
     let s3Events = [];
     s3Events = await getS3Events(stream);
     for (const event of s3Events) {
-      await redisAdd(event.file, stream, event.name);
+      await redisAdd(JSON.parse(event.file), stream, event.name);
     }
   }
 };
