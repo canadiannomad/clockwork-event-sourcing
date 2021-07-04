@@ -48,23 +48,19 @@ To install Clockwork, follow these simple example steps.
 
 ```sh
 $ cd your_project
-$ npm install --save clockwork-event-sourcing
-$ npm build
+$ yarn install --save clockwork-event-sourcing
+$ yarn build
 ```
 
-### npm
-
-Several scripts are provided in the ./bin directory.
+### Build
 
 ```sh
-> npm run build
+> yarn build
 ```
 This will create .js files for all .ts files found within the project folder. All new files will be created ```./built```
 
-```sh
-> npm run start
-```
-Starts the hello world example and embedded webserver.
+
+### Test
 
 ```sh
 docker-compose build clockwork && docker-compose run --rm clockwork
