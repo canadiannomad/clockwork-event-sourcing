@@ -67,7 +67,7 @@ This will create .js files for all .ts files found within the project folder. Al
 Starts the hello world example and embedded webserver.
 
 ```sh
-> npm run test
+docker-compose build clockwork && docker-compose run --rm clockwork
 ```
 Flushes Redis and runs built/example/test.js
 
