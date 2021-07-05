@@ -42,6 +42,8 @@ export interface S3Options {
   accessKeyId?: string;
   secretAccessKey?: string;
   endpoint?: string;
+  s3ForcePathStyle?: boolean;
+  signatureVersion?: string;
 }
 
 export interface DatalakeOptions {

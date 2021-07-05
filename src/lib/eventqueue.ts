@@ -59,8 +59,9 @@ const syncState = async (): Promise<void> => {
   const reverseListenFor = getPayloadsTypes();
 
   let currentState: string = await conf.state.getCurrentEventRecordName();
-  let nextItem: types.EventRecord | null =
-    currentState === '' ? await s3.getFirstEventRecord() : await s3.getNextEventRecordAfter(currentState);
+  let nextItem: types.EventRecord | null = currentState
+    ? await s3.getNextEventRecordAfter(currentState)
+    : await s3.getFirstEventRecord();
   if (!nextItem) return;
   do {
     for (const runEventName of reverseListenFor[nextItem.event.payloadType]) {
@@ -78,7 +79,6 @@ const processEvent = async (funcName: string, eventType: string, eventId: string
   const conf = config.get();
   const redisConf = conf.streams.redis;
   if (!redisConf) throw new Error('Redis not configured.');
-  const streamName = `${redisConf.prefix}-stream-${funcName}`;
   try {
     if (await conf.events[funcName].filterEvent(event)) {
       await conf.events[funcName].handleStateChange(event);
@@ -88,7 +88,7 @@ const processEvent = async (funcName: string, eventType: string, eventId: string
         command: 'FilteredEvent',
         parameters: [funcName, eventType, eventId],
       };
-      redis.publish(streamName, JSON.stringify(pubMessage));
+      redis.publish(`${redisConf.prefix}-channel`, JSON.stringify(pubMessage));
     }
     await redis.xack(`${redisConf.prefix}-stream-${eventType}`, `${redisConf.prefix}-cg-${funcName}`, eventId);
   } catch (_e) {
@@ -96,7 +96,7 @@ const processEvent = async (funcName: string, eventType: string, eventId: string
       command: 'FailedEvent',
       parameters: [funcName, eventType, eventId],
     };
-    redis.publish(streamName, JSON.stringify(pubMessage));
+    redis.publish(`${redisConf.prefix}-channel`, JSON.stringify(pubMessage));
   }
 };
 
@@ -124,20 +124,11 @@ const subscribeToQueues = async (): Promise<void> => {
   const redisConf = conf.streams.redis;
   if (!redisConf) throw new Error('Redis not configured.');
 
-  const reverseListenFor: Record<string, string[]> = {};
+  const reverseListenFor = getPayloadsTypes();
 
-  const eventNames = Object.keys(conf.events);
-  for (const eventName of eventNames) {
-    if (conf.events[eventName].listenFor) {
-      for (const listenFor of conf.events[eventName].listenFor) {
-        if (!reverseListenFor[listenFor]) reverseListenFor[listenFor] = [];
-        reverseListenFor[listenFor].push(eventName);
-      }
-    }
-  }
-
-  redis.subscribe(async (message: string) => {
+  await redis.subscribe(async (message: string) => {
     const msg = JSON.parse(message) as types.RedisMessage;
+    console.log('Event Queue Received Message:', message);
     if (msg.command === 'NewEvent') {
       const eventType = msg.parameters[0];
       for (const funcName of reverseListenFor[eventType]) {
@@ -182,6 +173,11 @@ const send = async (event: types.Event<any>): Promise<void> => {
   const eventId = await s3.saveEvent(event);
   const kvObj: string[] = utils.objectToKVArray(event, JSON.stringify);
   await redis.xadd(stream, eventId, ...kvObj);
+  const pubMessage: types.RedisMessage = {
+    command: 'NewEvent',
+    parameters: [event.payloadType],
+  };
+  redis.publish(`${redisConf.prefix}-channel`, JSON.stringify(pubMessage));
 };
 export default {
   initializeQueues,

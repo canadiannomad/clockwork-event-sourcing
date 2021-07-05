@@ -15,15 +15,15 @@ export default class implements types.EventObject {
 
   stateKey = 'ping-state';
 
-  filterEvent = (event: types.Event<PayloadHTTP>): Promise<boolean> => {
+  filterEvent = async (event: types.Event<PayloadHTTP>): Promise<boolean> => {
     const input = event.payload;
-    return Promise.resolve(input.call === 'ping' && event.payloadVersion === '0.0.1');
+    return input.call === 'ping' && event.payloadVersion === '0.0.1';
   };
 
   handleStateChange = async (_event: types.Event<PayloadHTTP>): Promise<void> => {
     const prefix = config.get().streams?.redis.prefix || 'test';
     const pingState = parseInt((await redis.get(`${prefix}-${this.stateKey}`)) || '0', 10) + 1;
-    await redis.set(this.stateKey, pingState.toString());
+    await redis.set(`${prefix}-${this.stateKey}`, pingState.toString());
   };
 
   handleSideEffects = async (event: types.Event<PayloadHTTP>): Promise<null> => {

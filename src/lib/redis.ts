@@ -63,11 +63,33 @@ const redisConnect = (redisConfig: types.RedisOptions) =>
     });
   });
 
-const subscriptionConnect = (callback: (message: string) => Promise<void>) =>
+const subscriptionConnect = async (callback: (message: string) => Promise<void>): Promise<void> =>
   new Promise((resolve: any) => {
     const { redis: redisConfig } = config.get().streams;
     if (!redisConfig) {
       throw new Error('Redis not configured.');
+    }
+    const subscriptionChannel = `${redisConfig.prefix}-channel`;
+    const subscribe = async (): Promise<void> =>
+      new Promise((res, rej) => {
+        subscriptionClient.subscribe(subscriptionChannel, (err) => {
+          if (err) {
+            console.error('Failed to subscribe: %s', err.message);
+            rej(err);
+            return;
+          }
+          subscriptionClient.on('message', (subChannel, message) => {
+            console.log('Lib Redis', `Received '${message}' from ${subChannel}`);
+            if (subChannel === subscriptionChannel) {
+              callback(message);
+            }
+          });
+          res();
+        });
+      });
+    if (subscriptionClient) {
+      subscribe().then(resolve);
+      return;
     }
     if (redisConfig.clusterNodes) {
       const redisOptions: Record<string, any> = {};
@@ -99,26 +121,15 @@ const subscriptionConnect = (callback: (message: string) => Promise<void>) =>
       }
       subscriptionClient = new IORedis(configObj);
     }
-    const subscriptionChannel = `${redisConfig.prefix}-channel`;
-    subscriptionClient.subscribe(subscriptionChannel, (err) => {
-      if (err) {
-        console.error('Failed to subscribe: %s', err.message);
-      }
-    });
-    subscriptionClient.on('message', (subChannel, message) => {
-      if (subChannel === subscriptionChannel) {
-        console.log('Lib Redis', `Received '${message}' from ${subChannel}`);
-        callback(message);
-      }
-    });
 
     subscriptionClient.on('error', (err: any) => {
       console.error('Lib Redis', 'REDIS CONNECT error ', err);
       console.error('Lib Redis', 'node error', err.lastNodeError);
     });
 
-    subscriptionClient.on('connect', () => {
+    subscriptionClient.on('connect', async () => {
       console.log('Lib Redis', 'Redis Connected');
+      await subscribe();
       resolve();
     });
 
@@ -179,6 +190,7 @@ export default {
   quit: redisClient('quit'),
   set: redisClient('set'),
   xadd: redisClient('xadd'),
+  xinfo: redisClient('xinfo'),
   xlen: redisClient('xlen'),
   xread: redisClient('xread'),
   xgroup: redisClient('xgroup'),

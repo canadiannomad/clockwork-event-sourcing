@@ -35,9 +35,8 @@ const storeToS3 = async (eventName: types.EventRecordName, body: string) => {
 const saveEvent = async (event: types.Event<any>): Promise<types.EventRecordName> => {
   const redisPrefix = conf.get().streams?.redis?.prefix || 'cwesf';
   const uts: number = new Date().getTime();
-  const uniq: string = crypto.randomBytes(4).toString('hex');
   nonce += 1;
-  const newEventRecordName: types.EventRecordName = `${uts}-${nonce}-${uniq}`;
+  const newEventRecordName: types.EventRecordName = `${uts}-${nonce}`;
   const eventString = JSON.stringify(event);
   const cachedEventKey = `${redisPrefix}-s3cache-${newEventRecordName}`;
   storeToS3(cachedEventKey, eventString);
@@ -72,6 +71,7 @@ const getEvent = async (eventName: types.EventRecordName): Promise<types.Event<a
 const getFirstEventRecord = async (): Promise<types.EventRecord | null> => {
   const { bucket } = getS3Config();
   if (!bucket) throw new Error('S3 Bucket not defined');
+  console.log('S3', `Getting first record.`);
   const folder = `${getS3Config().path}/`;
   const request: S3.Types.ListObjectsV2Request = {
     Bucket: bucket,
@@ -91,13 +91,14 @@ const getFirstEventRecord = async (): Promise<types.EventRecord | null> => {
 const getNextEventRecordAfter = async (currentRecordName: types.EventRecordName): Promise<types.EventRecord | null> => {
   const { bucket } = getS3Config();
   if (!bucket) throw new Error('S3 Bucket not defined');
+  console.log('S3', `Listing records starting from "${currentRecordName}"`);
   const folder = `${getS3Config().path}/`;
   const request: S3.Types.ListObjectsV2Request = {
     Bucket: bucket,
     Delimiter: '/',
     Prefix: folder,
     MaxKeys: 1,
-    StartAfter: currentRecordName,
+    StartAfter: `${folder}${currentRecordName}`,
   };
   const retVal = await getS3Object().listObjectsV2(request).promise();
   const contents = retVal?.Contents?.[0];

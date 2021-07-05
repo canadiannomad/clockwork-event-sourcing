@@ -1,7 +1,10 @@
+import { promisify } from 'util';
 import * as types from './types';
 import { config, eventqueue, redis, s3 } from './lib';
 
 export { config, types, redis };
+
+const sleep = promisify(setTimeout);
 
 export default class {
   constructor(options: types.Options | null = null) {
@@ -44,5 +47,7 @@ export default class {
   public destroy = async (): Promise<void> => {
     s3.stop();
     redis.stop();
+    // Settle (eg, saving s3 is done asynchronously)
+    sleep(100);
   };
 }
