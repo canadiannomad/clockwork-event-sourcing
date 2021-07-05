@@ -198,7 +198,6 @@ export default {
   xack: redisClient('xack'),
   xclaim: redisClient('xclaim'),
   xpending: redisClient('xpending'),
-  xinfo: redisClient('xinfo'),
   xrange: redisClient('xrange'),
   xrevrange: redisClient('xrevrange'),
   eval: redisClient('eval'),
