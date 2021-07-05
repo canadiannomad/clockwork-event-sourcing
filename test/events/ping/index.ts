@@ -15,9 +15,9 @@ export default class implements types.EventObject {
 
   stateKey = 'ping-state';
 
-  filterEvent = (event: types.Event<PayloadHTTP>): boolean => {
+  filterEvent = (event: types.Event<PayloadHTTP>): Promise<boolean> => {
     const input = event.payload;
-    return input.call === 'ping' && event.payloadVersion === '0.0.1';
+    return Promise.resolve(input.call === 'ping' && event.payloadVersion === '0.0.1');
   };
 
   handleStateChange = async (_event: types.Event<PayloadHTTP>): Promise<void> => {
@@ -28,8 +28,7 @@ export default class implements types.EventObject {
 
   handleSideEffects = async (event: types.Event<PayloadHTTP>): Promise<null> => {
     const prefix = config.get().streams?.redis.prefix || 'test';
-    const input = event.payload;
-    const { requestId } = input;
+    const { requestId } = event;
 
     const requestKey = `${prefix}-response-${requestId}`;
     const request = {} as Request;

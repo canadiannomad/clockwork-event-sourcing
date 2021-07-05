@@ -11,6 +11,8 @@ beforeAll(async () => {
     datalake: {
       s3: {
         bucket: 'minio',
+        accessKeyId: 'minio',
+        secretAccessKey: 'minio123'
       },
     },
     streams: {
