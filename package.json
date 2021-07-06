@@ -13,7 +13,7 @@
   "scripts": {
     "test": "jest --detectOpenHandles --runInBand",
     "lint": "eslint --fix src/**/*.ts",
-    "build": "time tsc"
+    "build": "time tsc --build --pretty --diagnostics --verbose"
   },
   "dependencies": {
     "aws-sdk": "^2.939.0",

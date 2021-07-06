@@ -19,9 +19,7 @@
     "types": ["node"],
     "declaration": true,
     "declarationMap": true,
-    "noEmitOnError": true,
-    "rootDir": "./src",
-    "baseUrl": "./src"
+    "noEmitOnError": true
   },
   "include": [
     "./src/index.ts"
