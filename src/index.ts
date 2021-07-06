@@ -2,11 +2,9 @@ import { promisify } from 'util';
 import * as types from './types';
 import { config, eventqueue, redis, s3 } from './lib';
 
-export { config, types, redis, s3 };
-
 const sleep = promisify(setTimeout);
 
-export default class {
+class ClockworkEventSourcing {
   constructor(options: types.Options | null = null) {
     if (options) {
       config.set(options);
@@ -53,3 +51,7 @@ export default class {
     sleep(100);
   };
 }
+
+export { ClockworkEventSourcing, config, types, redis, s3 };
+
+export default ClockworkEventSourcing;
