@@ -112,19 +112,18 @@ const getNextEventRecordAfter = async (currentRecordName: types.EventRecordName)
 const flushEvents = async (): Promise<void> => {
   const { bucket, path } = getS3Config();
   if (!bucket) throw new Error('S3 Bucket not defined');
-  var record = await getFirstEventRecord();
+  let record = await getFirstEventRecord();
   while (record !== null) {
     try {
       const request: S3.Types.DeleteObjectRequest = {
         Bucket: bucket,
-        Key: (path || 'events') + '/' + record?.name,
+        Key: `${path || 'events'}/${record?.name}`,
       };
-      
+
       await getS3Object().deleteObject(request).promise();
       record = await getFirstEventRecord();
-      
     } catch (error) {
-      throw new Error('Error deleting file ' + record?.name)
+      throw new Error(`Error deleting file ${record?.name}`);
     }
   }
 };

@@ -19,7 +19,7 @@ beforeAll(async () => {
         secretAccessKey: 'minio123',
         s3ForcePathStyle: true,
         signatureVersion: 'v4',
-        path: 'tests'
+        path: 'tests',
       },
     },
     streams: {
