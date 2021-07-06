@@ -1,15 +1,13 @@
 import { promisify } from 'util';
 import { v1 as uuidv1 } from 'uuid';
-import { default as Clockwork, types, redis, s3 } from '../src'; // eslint-disable-line import/no-named-default
+import * as cw from '../src'; // eslint-disable-line import/no-named-default
 import events from './events';
 import { PayloadHTTP } from './types';
 
 const sleep = promisify(setTimeout);
 
-let cw: Clockwork;
-
 beforeAll(async () => {
-  const options: types.Options = {
+  const options: cw.types.Options = {
     events,
     datalake: {
       s3: {
@@ -31,32 +29,32 @@ beforeAll(async () => {
       },
     },
     state: {
-      getCurrentEventRecordName: async () => redis.get('test-exampleStatePosition'),
-      setCurrentEventRecordName: async (name: string) => redis.set('test-exampleStatePosition', name),
+      getCurrentEventRecordName: async () => cw.redis.get('test-exampleStatePosition'),
+      setCurrentEventRecordName: async (name: string) => cw.redis.set('test-exampleStatePosition', name),
     },
   };
-  cw = new Clockwork(options);
-  await s3.flushEvents();
-  await redis.flushall();
+  cw.config.set(options);
+  await cw.s3.flushEvents();
+  await cw.redis.flushall();
 });
 afterAll(async () => {
-  await cw.destroy();
+  await cw.stop();
 });
 
 test('Initialize Queues', async () => {
-  await cw.initializeQueues();
-  const streamTest = await redis.xinfo('STREAM', 'test-stream-PayloadHTTP');
+  await cw.eventqueue.initializeQueues();
+  const streamTest = await cw.redis.xinfo('STREAM', 'test-stream-PayloadHTTP');
   expect(streamTest).toHaveProperty([9], 1);
 });
 
 test('Initial Ping State is null', async () => {
-  await cw.syncState();
-  const pingState = await redis.get('test-ping-state');
+  await cw.eventqueue.syncState();
+  const pingState = await cw.redis.get('test-ping-state');
   expect(pingState).toBeNull();
 });
 
 test('Subscribe & Emit Event', async () => {
-  await cw.subscribeToQueues();
+  await cw.eventqueue.subscribeToQueues();
 
   const payload: PayloadHTTP = {
     method: 'GET',
@@ -65,21 +63,21 @@ test('Subscribe & Emit Event', async () => {
     headers: {},
     body: '',
   };
-  const event: types.Event<PayloadHTTP> = {
+  const event: cw.types.Event<PayloadHTTP> = {
     requestId: uuidv1(),
     date: new Date().toJSON(),
     payloadType: 'PayloadHTTP',
     payloadVersion: '0.0.1',
     payload,
   };
-  await cw.send(event);
+  await cw.eventqueue.send(event);
   await sleep(500);
-  const pingState = await redis.get('test-ping-state');
+  const pingState = await cw.redis.get('test-ping-state');
   expect(pingState).toEqual('1');
 });
 
 test('Emit Filtered Event', async () => {
-  await cw.subscribeToQueues();
+  await cw.eventqueue.subscribeToQueues();
 
   const payload: PayloadHTTP = {
     method: 'GET',
@@ -88,15 +86,15 @@ test('Emit Filtered Event', async () => {
     headers: {},
     body: '',
   };
-  const event: types.Event<PayloadHTTP> = {
+  const event: cw.types.Event<PayloadHTTP> = {
     requestId: uuidv1(),
     date: new Date().toJSON(),
     payloadType: 'PayloadHTTP',
     payloadVersion: '0.0.2',
     payload,
   };
-  await cw.send(event);
+  await cw.eventqueue.send(event);
   await sleep(400);
-  const pingState = await redis.get('test-ping-state');
+  const pingState = await cw.redis.get('test-ping-state');
   expect(pingState).toEqual('1');
 });
