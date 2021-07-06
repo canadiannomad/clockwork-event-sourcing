@@ -1,8 +1,8 @@
-FROM node:14-alpine AS builder
+FROM node:alpine
 WORKDIR /usr/src/app/
 RUN apk add --no-cache bash
 COPY . /usr/src/app/
-RUN dos2unix /usr/src/app/bin/*.sh
-RUN npm install
+RUN yarn install
 
-CMD ["npm","run","start"] 
+
+CMD ["yarn","test"] 

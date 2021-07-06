@@ -1,11 +1,11 @@
-import { ClockWorkOptions } from './types';
+import { Options } from '../types';
 
-let queueOptions: ClockWorkOptions;
+let queueOptions: Options;
 
-const getConfiguration = (): ClockWorkOptions => queueOptions;
+const get = (): Options => queueOptions;
 
-const setConfiguration = (options: ClockWorkOptions): void => {
+const set = (options: Options): void => {
   queueOptions = options;
 };
 
-export default { getConfiguration, setConfiguration };
+export default { get, set };

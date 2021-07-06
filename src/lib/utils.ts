@@ -2,7 +2,7 @@ interface objToKVArrayCB {
   (arg: any): any;
 }
 interface kvArrayToObjCB {
-  (arg: any, key?: string): any;
+  (arg: any, key: string): any;
 }
 
 /**

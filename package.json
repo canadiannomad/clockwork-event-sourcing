@@ -1,6 +1,6 @@
 {
   "name": "clockwork-event-sourcing",
-  "version": "0.0.31",
+  "version": "0.1.1",
   "description": "Minimal NodeJS(TypeScript) + Redis Event Sourcing Framework",
   "main": "built/src/index.js",
   "typings": "built/src/index.d.ts",
@@ -11,21 +11,20 @@
   "license": "LGPL-3.0",
   "private": false,
   "scripts": {
-    "start": "bash bin/build.sh && bash bin/start.sh",
-    "test": "bash bin/test.sh",
-    "lint": "bash bin/lint.sh",
-    "build": "bash bin/build.sh",
-    "pack": "bash bin/pack.sh"
+    "test": "jest --detectOpenHandles --runInBand",
+    "lint": "eslint --fix src/**/*.ts",
+    "build": "time tsc"
   },
   "dependencies": {
-    "aws-sdk": "^2.935.0",
+    "aws-sdk": "^2.939.0",
     "ioredis": "^4.27.6",
     "uuid": "^8.3.2"
   },
   "devDependencies": {
     "@types/aws-sdk": "^2.7.0",
     "@types/ioredis": "^4.26.4",
-    "@types/node": "^12.20.15",
+    "@types/jest": "^26.0.23",
+    "@types/node": "^15.14.0",
     "@types/uuid": "^8.3.0",
     "@typescript-eslint/eslint-plugin": "^4.28.0",
     "@typescript-eslint/parser": "^4.28.0",
@@ -35,8 +34,11 @@
     "eslint-import-resolver-typescript": "^2.4.0",
     "eslint-plugin-import": "^2.23.4",
     "eslint-plugin-prettier": "^3.4.0",
+    "jest": "^27.0.6",
+    "jest-runtime": "^27.0.6",
     "prettier": "^2.3.2",
-    "typescript": "^3.9.10"
+    "ts-jest": "^27.0.3",
+    "typescript": "^4.3.5"
   },
   "directories": {
     "doc": "docs",
@@ -51,5 +53,28 @@
   },
   "files": [
     "built"
-  ]
+  ],
+  "jest": {
+    "preset": "ts-jest",
+    "forceExit": true,
+    "testEnvironment": "node",
+    "collectCoverage": true,
+    "collectCoverageFrom": [
+      "src/**/*.{ts,js}",
+      "!**/node_modules/**"
+    ],
+    "testMatch": [
+      "**/test/**/*.test.[jt]s?(x)",
+      "**/src/**/?(*.)+test.[jt]s?(x)"
+    ],
+    "transform": {
+      "^.+\\.(js|ts|tsx)$": "ts-jest"
+    },
+    "globals": {
+      "ts-jest": {
+        "isolatedModules": true,
+        "diagnostics": true
+      }
+    }
+  }
 }

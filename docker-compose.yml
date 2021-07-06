@@ -1,13 +1,11 @@
 version: '3.6'
 services:
   redis:
-    image: "redis:6.2.1-alpine"
+    image: "redis:alpine"
     ports:
       - "6379:6379"
   minio:
     image: minio/minio
-    volumes:
-      - data:/data
     entrypoint: >
       /bin/sh -c "
       mkdir -p /data/yourbucket;
@@ -16,18 +14,19 @@ services:
     ports:
       - "9000:9000"
     environment:
-      - MINIO_ACCESS_KEY=minio
-      - MINIO_SECRET_KEY=minio123
+      - MINIO_ROOT_USER=minio
+      - MINIO_ROOT_PASSWORD=minio123
       - MINIO_DIR=/data
-  
-  clockwork-event-sourcing:
-      build: .
-      image: "clockwork-event-sourcing"
-      container_name: cw
-      ports:
-      - "5000:5000"
-      depends_on:
-        - redis
-        - minio
-volumes:
-  data:
+    volumes:
+      - ./test/datalake:/data
+  clockwork:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    entrypoint:
+      - "/bin/bash"
+      - "-c"
+      - "./wait-for-it.sh -t 60 redis:6379 && ./wait-for-it.sh -t 60 minio:9000 -- yarn test"
+    depends_on:
+      - redis
+      - minio

@@ -14,6 +14,9 @@ terraform.tfstate.backup
 .terraform
 secrets.auto.tfvars
 built
+tsconfig.tsbuildinfo
+.minio.sys
+test/datalake/yourbucket/events/test*
 
 public
 
