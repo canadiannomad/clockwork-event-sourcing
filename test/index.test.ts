@@ -1,6 +1,6 @@
 import { promisify } from 'util';
 import { v1 as uuidv1 } from 'uuid';
-import { default as Clockwork, types, redis } from '../src'; // eslint-disable-line import/no-named-default
+import { default as Clockwork, types, redis, s3 } from '../src'; // eslint-disable-line import/no-named-default
 import events from './events';
 import { PayloadHTTP } from './types';
 
@@ -19,6 +19,7 @@ beforeAll(async () => {
         secretAccessKey: 'minio123',
         s3ForcePathStyle: true,
         signatureVersion: 'v4',
+        path: 'tests'
       },
     },
     streams: {
@@ -35,6 +36,7 @@ beforeAll(async () => {
     },
   };
   cw = new Clockwork(options);
+  await s3.flushEvents();
   await redis.flushall();
 });
 afterAll(async () => {
@@ -47,10 +49,10 @@ test('Initialize Queues', async () => {
   expect(streamTest).toHaveProperty([9], 1);
 });
 
-test('Sync State', async () => {
+test('Initial Ping State is null', async () => {
   await cw.syncState();
   const pingState = await redis.get('test-ping-state');
-  expect(pingState).toEqual('1');
+  expect(pingState).toBeNull();
 });
 
 test('Subscribe & Emit Event', async () => {
@@ -71,9 +73,9 @@ test('Subscribe & Emit Event', async () => {
     payload,
   };
   await cw.send(event);
-  await sleep(100);
+  await sleep(500);
   const pingState = await redis.get('test-ping-state');
-  expect(pingState).toEqual('2');
+  expect(pingState).toEqual('1');
 });
 
 test('Emit Filtered Event', async () => {
@@ -94,7 +96,7 @@ test('Emit Filtered Event', async () => {
     payload,
   };
   await cw.send(event);
-  await sleep(500);
+  await sleep(400);
   const pingState = await redis.get('test-ping-state');
-  expect(pingState).toEqual('2');
+  expect(pingState).toEqual('1');
 });

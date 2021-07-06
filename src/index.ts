@@ -2,7 +2,7 @@ import { promisify } from 'util';
 import * as types from './types';
 import { config, eventqueue, redis, s3 } from './lib';
 
-export { config, types, redis };
+export { config, types, redis, s3 };
 
 const sleep = promisify(setTimeout);
 
@@ -20,6 +20,8 @@ export default class {
   public static types = types;
 
   public static redis = redis;
+
+  public static s3 = s3;
 
   /**
    * This function initializes the event queues.
