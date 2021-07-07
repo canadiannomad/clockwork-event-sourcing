@@ -29,8 +29,9 @@ beforeAll(async () => {
       },
     },
     state: {
-      getCurrentEventRecordName: async () => cw.redis.get('test-exampleStatePosition'),
-      setCurrentEventRecordName: async (name: string) => cw.redis.set('test-exampleStatePosition', name),
+      getCurrentEventRecordName: async () => cw.redis.get(cw.redis.withPrefix('exampleStatePosition')),
+      setCurrentEventRecordName: async (name: string) =>
+        cw.redis.set(cw.redis.withPrefix('exampleStatePosition'), name),
     },
   };
   cw.config.set(options);
@@ -39,17 +40,18 @@ beforeAll(async () => {
 });
 afterAll(async () => {
   await cw.stop();
+  await sleep(1000);
 });
 
 test('Initialize Queues', async () => {
   await cw.eventqueue.initializeQueues();
-  const streamTest = await cw.redis.xinfo('STREAM', 'test-stream-PayloadHTTP');
+  const streamTest = await cw.redis.xinfo('STREAM', cw.redis.withPrefix('stream-PayloadHTTP'));
   expect(streamTest).toHaveProperty([9], 1);
 });
 
 test('Initial Ping State is null', async () => {
   await cw.eventqueue.syncState();
-  const pingState = await cw.redis.get('test-ping-state');
+  const pingState = await cw.redis.get(cw.redis.withPrefix('ping-state'));
   expect(pingState).toBeNull();
 });
 
@@ -72,7 +74,7 @@ test('Subscribe & Emit Event', async () => {
   };
   await cw.eventqueue.send(event);
   await sleep(500);
-  const pingState = await cw.redis.get('test-ping-state');
+  const pingState = await cw.redis.get(cw.redis.withPrefix('ping-state'));
   expect(pingState).toEqual('1');
 });
 
@@ -95,6 +97,6 @@ test('Emit Filtered Event', async () => {
   };
   await cw.eventqueue.send(event);
   await sleep(400);
-  const pingState = await cw.redis.get('test-ping-state');
+  const pingState = await cw.redis.get(cw.redis.withPrefix('ping-state'));
   expect(pingState).toEqual('1');
 });

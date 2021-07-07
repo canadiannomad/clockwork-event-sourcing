@@ -7,7 +7,7 @@
  * Side Effects: Updates Async Request with Output
  * Next: None
  */
-import { config, redis, types } from '../../../src';
+import { redis, types } from '../../../src';
 import { Request, PayloadHTTP, SimpleResponse } from '../../types';
 
 export default class implements types.EventObject {
@@ -21,18 +21,16 @@ export default class implements types.EventObject {
   };
 
   handleStateChange = async (_event: types.Event<PayloadHTTP>): Promise<void> => {
-    const prefix = config.get().streams?.redis.prefix || 'test';
-    const pingState = parseInt((await redis.get(`${prefix}-${this.stateKey}`)) || '0', 10) + 1;
-    await redis.set(`${prefix}-${this.stateKey}`, pingState.toString());
+    const pingState = parseInt((await redis.get(redis.withPrefix(this.stateKey))) || '0', 10) + 1;
+    await redis.set(redis.withPrefix(this.stateKey), pingState.toString());
   };
 
   handleSideEffects = async (event: types.Event<PayloadHTTP>): Promise<null> => {
-    const prefix = config.get().streams?.redis.prefix || 'test';
     const { requestId } = event;
 
-    const requestKey = `${prefix}-response-${requestId}`;
+    const requestKey = redis.withPrefix(`response-${requestId}`);
     const request = {} as Request;
-    const pingState = parseInt((await redis.get(`${prefix}-${this.stateKey}`)) || '0', 10);
+    const pingState = parseInt((await redis.get(redis.withPrefix(this.stateKey))) || '0', 10);
 
     const output: SimpleResponse = {
       body: JSON.stringify({

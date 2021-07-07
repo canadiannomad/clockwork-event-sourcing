@@ -67,26 +67,6 @@ const getEvent = async (eventName: types.EventRecordName): Promise<types.Event<a
   }
 };
 
-const getFirstEventRecord = async (): Promise<types.EventRecord | null> => {
-  const { bucket } = getS3Config();
-  if (!bucket) throw new Error('S3 Bucket not defined');
-  console.log('S3', `Getting first record.`);
-  const folder = `${getS3Config().path}/`;
-  const request: S3.Types.ListObjectsV2Request = {
-    Bucket: bucket,
-    Delimiter: '/',
-    Prefix: folder,
-    MaxKeys: 1,
-  };
-  const retVal = await getS3Object().listObjectsV2(request).promise();
-  const contents = retVal?.Contents?.[0];
-  if (!contents || !contents.Key) return null;
-  const eventName: types.EventRecordName = contents.Key.replace(`${folder}`, '');
-  return {
-    name: eventName,
-    event: await getEvent(eventName),
-  };
-};
 const getNextEventRecordAfter = async (currentRecordName: types.EventRecordName): Promise<types.EventRecord | null> => {
   const { bucket } = getS3Config();
   if (!bucket) throw new Error('S3 Bucket not defined');
@@ -102,10 +82,36 @@ const getNextEventRecordAfter = async (currentRecordName: types.EventRecordName)
   const retVal = await getS3Object().listObjectsV2(request).promise();
   const contents = retVal?.Contents?.[0];
   if (!contents || !contents.Key) return null;
-  const eventName: types.EventRecordName = contents.Key.replace(`${folder}`, '');
+  const fileName: types.EventRecordName = contents.Key.replace(`${folder}`, '');
+
+  if (fileName.startsWith('.') || !fileName.endsWith('.json')) return getNextEventRecordAfter(fileName);
+
   return {
-    name: eventName,
-    event: await getEvent(eventName),
+    name: fileName,
+    event: await getEvent(fileName),
+  };
+};
+const getFirstEventRecord = async (): Promise<types.EventRecord | null> => {
+  const { bucket } = getS3Config();
+  if (!bucket) throw new Error('S3 Bucket not defined');
+  console.log('S3', `Getting first record.`);
+  const folder = `${getS3Config().path}/`;
+  const request: S3.Types.ListObjectsV2Request = {
+    Bucket: bucket,
+    Delimiter: '/',
+    Prefix: folder,
+    MaxKeys: 1,
+  };
+  const retVal = await getS3Object().listObjectsV2(request).promise();
+  const contents = retVal?.Contents?.[0];
+  if (!contents || !contents.Key) return null;
+  const fileName: types.EventRecordName = contents.Key.replace(`${folder}`, '');
+
+  if (fileName.startsWith('.') || !fileName.endsWith('.json')) return getNextEventRecordAfter(fileName);
+
+  return {
+    name: fileName,
+    event: await getEvent(fileName),
   };
 };
 
@@ -116,13 +122,13 @@ const flushEvents = async (): Promise<void> => {
   while (record !== null) {
     try {
       const filename = record?.name;
-      if (!filename || !filename.endsWith('.json') || filename.startsWith('.')) continue; // eslint-disable-line no-continue
+      if (!filename) continue; // eslint-disable-line no-continue
       const request: S3.Types.DeleteObjectRequest = {
         Bucket: bucket,
         Key: `${path}/${filename}`,
       };
       await getS3Object().deleteObject(request).promise();
-      record = await getFirstEventRecord();
+      record = await getNextEventRecordAfter(filename);
     } catch (error) {
       throw new Error(`Error deleting file ${record?.name}`);
     }

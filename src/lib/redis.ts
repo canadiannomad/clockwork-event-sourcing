@@ -2,7 +2,6 @@ import evtEmitter from 'events';
 import IORedis from 'ioredis';
 import * as util from 'util';
 import config from './config';
-import * as types from '../types';
 
 evtEmitter.EventEmitter.defaultMaxListeners = 40;
 
@@ -11,148 +10,98 @@ const { promisify } = util;
 let client: IORedis.Redis | IORedis.Cluster;
 let subscriptionClient: IORedis.Redis | IORedis.Cluster;
 
-const redisConnect = (redisConfig: types.RedisOptions) =>
-  new Promise((resolve: any) => {
-    if (redisConfig.clusterNodes) {
-      const redisOptions: Record<string, any> = {};
-      if (redisConfig.password) {
-        redisOptions.password = redisConfig.password;
-      }
-      if (redisConfig.tls) {
-        redisOptions.tls = {
-          checkServerIdentity: () =>
-            // skip certificate hostname validation
-            undefined,
-        };
-      }
-      client = new IORedis.Cluster(redisConfig.clusterNodes, { redisOptions });
-    } else {
-      const configObj: any = {
-        host: redisConfig.host,
-        port: redisConfig.port,
-      };
-      if (redisConfig.password) {
-        configObj.password = redisConfig.password;
-      }
-      if (redisConfig.tls) {
-        configObj.tls = {
-          checkServerIdentity: () =>
-            // skip certificate hostname validation
-            undefined,
-        };
-      }
-      client = new IORedis(configObj);
-    }
+const withPrefix = (suffix: string): string => {
+  const { redis: redisConfig } = config.get().streams;
+  if (!redisConfig) {
+    throw new Error('Redis not configured.');
+  }
+  return `${redisConfig.prefix}-${suffix}`;
+};
 
-    client.on('error', (err: any) => {
-      console.error('Lib Redis', 'REDIS CONNECT error ', err);
-      console.error('Lib Redis', 'node error', err.lastNodeError);
-    });
+const returnClient = (): IORedis.Redis | IORedis.Cluster => {
+  const { redis: redisConfig } = config.get().streams;
+  const redisOptions: Record<string, any> = {};
+  if (!redisConfig) {
+    throw new Error('Redis not configured.');
+  }
 
-    client.on('connect', () => {
+  if (redisConfig.password) {
+    redisOptions.password = redisConfig.password;
+  }
+  if (redisConfig.tls) {
+    redisOptions.tls = {
+      checkServerIdentity: () =>
+        // skip certificate hostname validation
+        undefined,
+    };
+  }
+
+  if (!redisConfig.clusterNodes) {
+    redisOptions.host = redisConfig.host;
+    redisOptions.port = redisConfig.port || 6379;
+  }
+
+  return redisConfig.clusterNodes
+    ? new IORedis.Cluster(redisConfig.clusterNodes, { redisOptions })
+    : new IORedis(redisOptions);
+};
+
+const attachListeners = async (outClient: IORedis.Redis | IORedis.Cluster) => {
+  await new Promise((resolve) => {
+    const listener = async () => {
       console.log('Lib Redis', 'Redis Connected');
-      resolve();
-    });
-
-    client.on('reconnecting', () => {
-      console.warn('Lib Redis', 'Redis Reconnecting');
-    });
-
-    client.on('warning', () => {
-      console.warn('Lib Redis', 'Redis Reconnecting');
-    });
+      resolve(outClient);
+    };
+    outClient.on('connect', listener);
+  });
+  outClient.on('error', (err: any) => {
+    console.error('Lib Redis', 'REDIS CONNECT error ', err, err.lastNodeError);
   });
 
-const subscriptionConnect = async (callback: (message: string) => Promise<void>): Promise<void> =>
-  new Promise((resolve: any) => {
-    const { redis: redisConfig } = config.get().streams;
-    if (!redisConfig) {
-      throw new Error('Redis not configured.');
-    }
-    const subscriptionChannel = `${redisConfig.prefix}-channel`;
-    const subscribe = async (): Promise<void> =>
-      new Promise((res, rej) => {
-        subscriptionClient.subscribe(subscriptionChannel, (err) => {
-          if (err) {
-            console.error('Failed to subscribe: %s', err.message);
-            rej(err);
-            return;
+  outClient.on('reconnecting', () => {
+    console.warn('Lib Redis', 'Redis Reconnecting');
+  });
+
+  outClient.on('warning', () => {
+    console.warn('Lib Redis', 'Redis Reconnecting');
+  });
+};
+
+const redisConnect = async () => {
+  client = returnClient();
+  await attachListeners(client);
+};
+
+const subscriptionConnect = async (callback: (message: string) => Promise<void>): Promise<void> => {
+  subscriptionClient = returnClient();
+  await attachListeners(subscriptionClient);
+  const subscribe = async (): Promise<void> =>
+    new Promise((res, rej) => {
+      subscriptionClient.subscribe(withPrefix('channel'), (err) => {
+        if (err) {
+          console.error('Failed to subscribe: %s', err.message);
+          rej(err);
+          return;
+        }
+        subscriptionClient.on('message', (subChannel, message) => {
+          console.log('Lib Redis', `Received '${message}' from ${subChannel}`);
+          if (subChannel === withPrefix('channel')) {
+            callback(message);
           }
-          subscriptionClient.on('message', (subChannel, message) => {
-            console.log('Lib Redis', `Received '${message}' from ${subChannel}`);
-            if (subChannel === subscriptionChannel) {
-              callback(message);
-            }
-          });
-          res();
         });
+        res();
       });
-    if (subscriptionClient) {
-      subscribe().then(resolve);
-      return;
-    }
-    if (redisConfig.clusterNodes) {
-      const redisOptions: Record<string, any> = {};
-      if (redisConfig.password) {
-        redisOptions.password = redisConfig.password;
-      }
-      if (redisConfig.tls) {
-        redisOptions.tls = {
-          checkServerIdentity: () =>
-            // skip certificate hostname validation
-            undefined,
-        };
-      }
-      subscriptionClient = new IORedis.Cluster(redisConfig.clusterNodes, { redisOptions });
-    } else {
-      const configObj: any = {
-        host: redisConfig.host,
-        port: redisConfig.port,
-      };
-      if (redisConfig.password) {
-        configObj.password = redisConfig.password;
-      }
-      if (redisConfig.tls) {
-        configObj.tls = {
-          checkServerIdentity: () =>
-            // skip certificate hostname validation
-            undefined,
-        };
-      }
-      subscriptionClient = new IORedis(configObj);
-    }
-
-    subscriptionClient.on('error', (err: any) => {
-      console.error('Lib Redis', 'REDIS CONNECT error ', err);
-      console.error('Lib Redis', 'node error', err.lastNodeError);
     });
-
-    subscriptionClient.on('connect', async () => {
-      console.log('Lib Redis', 'Redis Connected');
-      await subscribe();
-      resolve();
-    });
-
-    subscriptionClient.on('reconnecting', () => {
-      console.warn('Lib Redis', 'Redis Reconnecting');
-    });
-
-    subscriptionClient.on('warning', () => {
-      console.warn('Lib Redis', 'Redis Reconnecting');
-    });
-  });
+  await subscribe();
+};
 
 const redisClient =
   (func: string) =>
   async (...args: Array<any>): Promise<any> => {
     if (!client) {
-      const { redis: redisConfig } = config.get().streams;
-      if (!redisConfig) {
-        throw new Error('Redis not configured.');
-      }
       console.log('Lib Redis', 'Redis Auth Starting');
       try {
-        await redisConnect(redisConfig);
+        await redisConnect();
       } catch (e) {
         console.error('Lib Redis', 'Redis Auth failed:', e);
         throw e;
@@ -177,9 +126,15 @@ const redisClient =
     return result;
   };
 
-const stop = (): void => {
-  if (client) client.quit();
-  if (subscriptionClient) subscriptionClient.quit();
+const stop = (): Promise<any[]> => {
+  const promises = [];
+  if (client) {
+    promises.push(async () => client.quit());
+  }
+  if (subscriptionClient) {
+    promises.push(async () => subscriptionClient.quit());
+  }
+  return Promise.all(promises);
 };
 
 export default {
@@ -204,5 +159,6 @@ export default {
   incr: redisClient('incr'),
   publish: redisClient('publish'),
   subscribe: subscriptionConnect,
+  withPrefix,
   stop,
 };

@@ -3,7 +3,7 @@
     "allowSyntheticDefaultImports": true,
     "experimentalDecorators": true,
     "esModuleInterop": true,
-    "incremental": true,
+    "incremental": false,
     "outDir": "./built",
     "allowJs": true,
     "lib": ["es2020", "dom"],

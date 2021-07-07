@@ -6,8 +6,9 @@ const sleep = promisify(setTimeout);
 
 const stop = async (): Promise<void> => {
   s3.stop();
-  redis.stop();
+  await redis.stop();
   // Settle (eg, saving s3 is done asynchronously)
+  await new Promise(resolve => setImmediate(resolve));
   await sleep(100);
 };
 

@@ -16,7 +16,8 @@ secrets.auto.tfvars
 built
 tsconfig.tsbuildinfo
 .minio.sys
-test/**/test-*
+test/**/cwesf*.json
+test/**/test*.json
 
 public
 
