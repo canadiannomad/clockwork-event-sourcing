@@ -115,11 +115,12 @@ const flushEvents = async (): Promise<void> => {
   let record = await getFirstEventRecord();
   while (record !== null) {
     try {
+      const filename = record?.name;
+      if (!filename || !filename.endsWith('.json') || filename.startsWith('.')) continue; // eslint-disable-line no-continue
       const request: S3.Types.DeleteObjectRequest = {
         Bucket: bucket,
-        Key: `${path || 'events'}/${record?.name}`,
+        Key: `${path}/${filename}`,
       };
-
       await getS3Object().deleteObject(request).promise();
       record = await getFirstEventRecord();
     } catch (error) {

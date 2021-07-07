@@ -17,7 +17,7 @@ beforeAll(async () => {
         secretAccessKey: 'minio123',
         s3ForcePathStyle: true,
         signatureVersion: 'v4',
-        path: 'tests',
+        path: 'events',
       },
     },
     streams: {
@@ -25,7 +25,7 @@ beforeAll(async () => {
         host: 'redis',
         port: 6379,
         tls: false,
-        prefix: 'test',
+        prefix: 'cwesf',
       },
     },
     state: {
