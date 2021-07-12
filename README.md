@@ -9,7 +9,7 @@
 -->
 
 [![Contributors][contributors-shield]][contributors-url]
-[![License: LGPL v3][license-shield]][license-url]
+[![License: MIT][license-shield]][license-url]
 
 <!-- PROJECT LOGO -->
 
@@ -107,6 +107,6 @@ Distributed under the LGPL 3.0 License. See `LICENSE` for more information.
 
 [contributors-url]: https://github.com/canadiannomad/clockwork-event-sourcing/blob/master/AUTHORS.md
 
-[license-shield]: https://img.shields.io/badge/LICENSE-LGPL--3.0-blue?style=for-the-badge
+[license-shield]: https://img.shields.io/badge/license-MIT-green?style=for-the-badge
 
 [license-url]: https://github.com/canadiannomad/clockwork-event-sourcing/blob/master/LICENSE

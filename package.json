@@ -8,7 +8,7 @@
   "homepage": "https://github.com/canadiannomad/clockwork-event-sourcing/issues",
   "url": "https://github.com/canadiannomad/clockwork-event-sourcing",
   "email": "kyle@canadiannomad.com",
-  "license": "LGPL-3.0",
+  "license": "MIT",
   "private": false,
   "scripts": {
     "test": "jest --runInBand",
