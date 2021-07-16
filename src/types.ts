@@ -68,6 +68,7 @@ export interface Options {
   datalake: DatalakeOptions;
   streams: StreamsOptions;
   state: StateOptions;
+  logger?: boolean | ((...args: any[]) => void);
 }
 
 export interface RedisMessage {

@@ -1,5 +1,6 @@
 import { hostname } from 'os';
 
+import log from './log';
 import * as types from '../types';
 import { config, redis, s3, utils } from '.';
 
@@ -34,7 +35,7 @@ const initializeQueues = async (): Promise<void> => {
   for (const payloadType of payloadTypes) {
     for (const eventName of reverseListenFor[payloadType]) {
       try {
-        console.log('Lib Event Queue', `Listening for ${payloadType} to call ${eventName}`);
+        log('Lib Event Queue', `Listening for ${payloadType} to call ${eventName}`);
 
         await redis.xgroup(
           'CREATE',
@@ -44,7 +45,7 @@ const initializeQueues = async (): Promise<void> => {
           'MKSTREAM',
         );
       } catch (e) {
-        // console.log('Lib Event Queue', `Failed add ${listenFor}`, e);
+        // log('Lib Event Queue', `Failed add ${listenFor}`, e);
         // Do nothing.  Group already exists.
       }
     }
@@ -60,7 +61,7 @@ const send = async (event: types.Event<any>): Promise<void> => {
   if (!redisConf) throw new Error('Redis not configured.');
 
   const stream = `${redisConf.prefix}-stream-${event.payloadType}`;
-  console.log('Lib Storage', `Adding event to redis ${stream}`);
+  log('Lib Storage', `Adding event to redis ${stream}`);
   const eventId = await s3.saveEvent(event);
   const kvObj: string[] = utils.objectToKVArray(event, JSON.stringify);
   await redis.xadd(stream, eventId, ...kvObj);
@@ -112,7 +113,7 @@ const processEvent = async (funcName: string, eventType: string, eventId: string
         newEvent.payloadVersion = newPayloadReturn.version;
         newEvent.date = new Date().toJSON();
         newEvent.payload = newPayloadReturn.payload;
-        console.log('Lib Event Queue', `Triggering new event from ${funcName}`, newEvent);
+        log('Lib Event Queue', `Triggering new event from ${funcName}`, newEvent);
         send(newEvent);
       }
     } else {
@@ -140,7 +141,7 @@ const processResponse = (funcName: string, eventType: string, response: Array<an
         newArray.push(
           utils.kvArrayToObject(arg[evtPos], (aarg: Array<string>, key: string): Record<string, any> => {
             const evtObj = utils.kvArrayToObject(aarg, (a) => JSON.parse(a)) as types.Event<any>;
-            console.log('Lib Event Queue', 'Got Event', { key, evtObj });
+            log('Lib Event Queue', 'Got Event', { key, evtObj });
             processEvent(funcName, eventType, key, evtObj);
             return evtObj;
           }),
@@ -160,7 +161,7 @@ const subscribeToQueues = async (): Promise<void> => {
 
   await redis.subscribe(async (message: string) => {
     const msg = JSON.parse(message) as types.RedisMessage;
-    console.log('Event Queue Received Message:', message);
+    log('Event Queue Received Message:', message);
     if (msg.command === 'NewEvent') {
       const eventType = msg.parameters[0];
       for (const funcName of reverseListenFor[eventType]) {

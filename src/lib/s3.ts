@@ -2,6 +2,7 @@ import S3 from 'aws-sdk/clients/s3';
 import * as types from '../types';
 import conf from './config';
 import redis from './redis';
+import log from './log';
 
 let nonce = 0;
 const timer = setInterval(() => {
@@ -25,7 +26,7 @@ const storeToS3 = async (eventName: types.EventRecordName, body: string) => {
   };
   try {
     await getS3Object().putObject(putObject).promise();
-    console.log('S3', 'Saved file:', { eventName });
+    log('S3', 'Saved file:', { eventName });
   } catch (e) {
     console.error('S3', 'Failed to save the file:', { eventName, e });
   }
@@ -58,11 +59,11 @@ const getEvent = async (eventName: types.EventRecordName): Promise<types.Event<a
   try {
     const retVal = await getS3Object().getObject(request).promise();
     const data = (retVal.Body || '').toString('utf-8');
-    console.log('S3', 'Got file:', { eventName });
+    log('S3', 'Got file:', { eventName });
     redis.set(cachedEventKey, data);
     return JSON.parse(data) as types.Event<any>;
   } catch (e) {
-    console.log('S3', 'Failed to get the file:', { eventName, e });
+    log('S3', 'Failed to get the file:', { eventName, e });
     throw e;
   }
 };
@@ -70,7 +71,7 @@ const getEvent = async (eventName: types.EventRecordName): Promise<types.Event<a
 const getNextEventRecordAfter = async (currentRecordName: types.EventRecordName): Promise<types.EventRecord | null> => {
   const { bucket } = getS3Config();
   if (!bucket) throw new Error('S3 Bucket not defined');
-  console.log('S3', `Listing records starting from "${currentRecordName}"`);
+  log('S3', `Listing records starting from "${currentRecordName}"`);
   const folder = `${getS3Config().path}/`;
   const request: S3.Types.ListObjectsV2Request = {
     Bucket: bucket,
@@ -94,7 +95,7 @@ const getNextEventRecordAfter = async (currentRecordName: types.EventRecordName)
 const getFirstEventRecord = async (): Promise<types.EventRecord | null> => {
   const { bucket } = getS3Config();
   if (!bucket) throw new Error('S3 Bucket not defined');
-  console.log('S3', `Getting first record.`);
+  log('S3', `Getting first record.`);
   const folder = `${getS3Config().path}/`;
   const request: S3.Types.ListObjectsV2Request = {
     Bucket: bucket,

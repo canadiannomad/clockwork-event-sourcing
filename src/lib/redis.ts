@@ -2,6 +2,7 @@ import evtEmitter from 'events';
 import IORedis from 'ioredis';
 import * as util from 'util';
 import config from './config';
+import log from './log';
 
 evtEmitter.EventEmitter.defaultMaxListeners = 40;
 
@@ -49,7 +50,7 @@ const returnClient = (): IORedis.Redis | IORedis.Cluster => {
 const attachListeners = async (outClient: IORedis.Redis | IORedis.Cluster) => {
   await new Promise((resolve) => {
     const listener = async () => {
-      console.log('Lib Redis', 'Redis Connected');
+      log('Lib Redis', 'Redis Connected');
       resolve(outClient);
     };
     outClient.on('connect', listener);
@@ -84,7 +85,7 @@ const subscriptionConnect = async (callback: (message: string) => Promise<void>)
           return;
         }
         subscriptionClient.on('message', (subChannel, message) => {
-          console.log('Lib Redis', `Received '${message}' from ${subChannel}`);
+          log('Lib Redis', `Received '${message}' from ${subChannel}`);
           if (subChannel === withPrefix('channel')) {
             callback(message);
           }
@@ -99,21 +100,21 @@ const redisClient =
   (func: string) =>
   async (...args: Array<any>): Promise<any> => {
     if (!client) {
-      console.log('Lib Redis', 'Redis Auth Starting');
+      log('Lib Redis', 'Redis Auth Starting');
       try {
         await redisConnect();
       } catch (e) {
         console.error('Lib Redis', 'Redis Auth failed:', e);
         throw e;
       }
-      console.log('Lib Redis', 'Calling:', { func, items: [...args] });
+      log('Lib Redis', 'Calling:', { func, items: [...args] });
       const call = promisify(client[func]).bind(client);
       const result = await call.apply(client, args);
-      console.log('Lib Redis', 'Retrieved:', { result });
+      log('Lib Redis', 'Retrieved:', { result });
       return result;
     }
     if (func !== 'xreadgroup') {
-      console.log('Lib Redis', 'Already Loaded, Calling:', { func, items: [...args] });
+      log('Lib Redis', 'Already Loaded, Calling:', { func, items: [...args] });
     }
     type CallBackType = (...a: any) => any;
     const redisFunc = (client as any)[func] as CallBackType;
@@ -121,7 +122,7 @@ const redisClient =
       .bind(client)
       .apply(client, args as []);
     if (result) {
-      console.log('Lib Redis', 'Retrieved:', { result });
+      log('Lib Redis', 'Retrieved:', { result });
     }
     return result;
   };
