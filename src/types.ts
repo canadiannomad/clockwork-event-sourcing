@@ -1,6 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export type PayloadType = string;
 
+export interface PayloadReturn {
+  type: PayloadType;
+  version: string;
+  payload: any;
+}
+
 export interface Event<T> {
   requestId: string;
   date: string;
@@ -20,7 +26,7 @@ export interface EventObject {
   listenFor: PayloadType[];
   filterEvent(event: Event<any>): Promise<boolean>;
   handleStateChange(event: Event<any>): Promise<void>;
-  handleSideEffects(event: Event<any>): Promise<Event<any> | null>;
+  handleSideEffects(event: Event<any>): Promise<PayloadReturn | null>;
 }
 
 export interface ClusterNode {

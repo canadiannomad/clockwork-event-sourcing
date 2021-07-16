@@ -52,6 +52,26 @@ const initializeQueues = async (): Promise<void> => {
 };
 
 /**
+ * This function publishes an event to the queue
+ */
+const send = async (event: types.Event<any>): Promise<void> => {
+  const conf = config.get();
+  const redisConf = conf.streams.redis;
+  if (!redisConf) throw new Error('Redis not configured.');
+
+  const stream = `${redisConf.prefix}-stream-${event.payloadType}`;
+  console.log('Lib Storage', `Adding event to redis ${stream}`);
+  const eventId = await s3.saveEvent(event);
+  const kvObj: string[] = utils.objectToKVArray(event, JSON.stringify);
+  await redis.xadd(stream, eventId, ...kvObj);
+  const pubMessage: types.RedisMessage = {
+    command: 'NewEvent',
+    parameters: [event.payloadType],
+  };
+  redis.publish(`${redisConf.prefix}-channel`, JSON.stringify(pubMessage));
+};
+
+/**
  * This function calls `handleStateChange` for every event after `getCurrentEventRecordName()`
  */
 const syncState = async (): Promise<void> => {
@@ -75,14 +95,26 @@ const syncState = async (): Promise<void> => {
   } while (nextItem);
 };
 
+/**
+ * This function makes sure the state is up to date then processes a new event.
+ */
 const processEvent = async (funcName: string, eventType: string, eventId: string, event: types.Event<any>) => {
   const conf = config.get();
   const redisConf = conf.streams.redis;
   if (!redisConf) throw new Error('Redis not configured.');
   try {
     if (await conf.events[funcName].filterEvent(event)) {
-      await conf.events[funcName].handleStateChange(event);
-      await conf.events[funcName].handleSideEffects(event);
+      await syncState();
+      const newPayloadReturn = await conf.events[funcName].handleSideEffects(event);
+      if (newPayloadReturn) {
+        const newEvent = { ...event };
+        newEvent.payloadType = newPayloadReturn.type;
+        newEvent.payloadVersion = newPayloadReturn.version;
+        newEvent.date = new Date().toJSON();
+        newEvent.payload = newPayloadReturn.payload;
+        console.log('Lib Event Queue', `Triggering new event from ${funcName}`, newEvent);
+        send(newEvent);
+      }
     } else {
       const pubMessage: types.RedisMessage = {
         command: 'FilteredEvent',
@@ -163,22 +195,6 @@ const subscribeToQueues = async (): Promise<void> => {
   });
 };
 
-const send = async (event: types.Event<any>): Promise<void> => {
-  const conf = config.get();
-  const redisConf = conf.streams.redis;
-  if (!redisConf) throw new Error('Redis not configured.');
-
-  const stream = `${redisConf.prefix}-stream-${event.payloadType}`;
-  console.log('Lib Storage', `Adding event to redis ${stream}`);
-  const eventId = await s3.saveEvent(event);
-  const kvObj: string[] = utils.objectToKVArray(event, JSON.stringify);
-  await redis.xadd(stream, eventId, ...kvObj);
-  const pubMessage: types.RedisMessage = {
-    command: 'NewEvent',
-    parameters: [event.payloadType],
-  };
-  redis.publish(`${redisConf.prefix}-channel`, JSON.stringify(pubMessage));
-};
 export default {
   initializeQueues,
   syncState,
