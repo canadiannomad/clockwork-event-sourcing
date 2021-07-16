@@ -1,6 +1,6 @@
 {
   "name": "clockwork-event-sourcing",
-  "version": "0.1.12",
+  "version": "0.1.13",
   "description": "Minimal NodeJS(TypeScript) + Redis Event Sourcing Framework",
   "main": "built/index.js",
   "typings": "built/index.d.ts",
