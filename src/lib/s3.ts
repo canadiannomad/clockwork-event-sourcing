@@ -1,97 +1,150 @@
-import { ClockWorkOptions } from './types';
-import { S3 } from 'aws-sdk/clients/all';
-import { PutObjectRequest } from 'aws-sdk/clients/s3';
-import logger from './logger';
-import config from './config';
+import S3 from 'aws-sdk/clients/s3';
+import * as types from '../types';
+import conf from './config';
+import redis from './redis';
+import log from './log';
 
-const log = logger('S3');
-const s3 = new S3();
+let nonce = 0;
+const timer = setInterval(() => {
+  nonce = 0;
+}, 1000);
 
-/**
- * This function saves a text file into a S3 bucket.
- * @param {string}  name - The file name.
- * @param {string}  content - The file content.
- * @return {Promise<any>} Promise that returns the S3 response.
- */
-const saveJsonFile = async (name: string, content: string): Promise<any> => {
-  const bucket = config.getConfiguration().s3Bucket;
-  const testMode = config.getConfiguration().testMode;
-  const putObject: PutObjectRequest = {
+const getS3Config = () => {
+  const s3Config = conf.get().datalake?.s3;
+  if (!s3Config) throw new Error('S3 Not Configured');
+  s3Config.path = s3Config.path || 'events';
+  return s3Config;
+};
+const getS3Object = (): S3 => new S3(getS3Config());
+
+const storeToS3 = async (eventName: types.EventRecordName, body: string) => {
+  const { bucket } = getS3Config();
+  const putObject: S3.Types.PutObjectRequest = {
     Bucket: bucket,
-    Body: JSON.stringify(content),
-    Key: `${name}.json`,
+    Body: body,
+    Key: `${getS3Config().path}/${eventName}.json`,
   };
-  log.info(`Saving file ${name}`, { putObject });
   try {
-    if (!testMode) {
-      await s3.putObject(putObject).promise();
-      log.info('Saved file:', { name });
-    }
+    await getS3Object().putObject(putObject).promise();
+    log('S3', 'Saved file:', { eventName });
   } catch (e) {
-    log.info('Failed to save the file:', { name, e });
-    throw e;
+    console.error('S3', 'Failed to save the file:', { eventName, e });
   }
 };
 
-/**
- * This function gets a file from S3 bucket.
- * @param {string}  name - The file name.
- * @return {Promise<any>} Promise that returns the file content.
- */
-const getJsonFile = async (name: string): Promise<any> => {
-  const bucket = config.getConfiguration().s3Bucket;
+const saveEvent = async (event: types.Event<any>): Promise<types.EventRecordName> => {
+  const redisPrefix = conf.get().streams?.redis?.prefix || 'cwesf';
+  const uts: number = new Date().getTime();
+  nonce += 1;
+  const newEventRecordName: types.EventRecordName = `${uts}-${nonce}`;
+  const eventString = JSON.stringify(event);
+  const cachedEventKey = `${redisPrefix}-s3cache-${newEventRecordName}`;
+  storeToS3(cachedEventKey, eventString);
+  await redis.set(cachedEventKey, eventString);
+  return newEventRecordName;
+};
+
+const getEvent = async (eventName: types.EventRecordName): Promise<types.Event<any>> => {
+  const redisPrefix = conf.get().streams?.redis?.prefix || 'cwesf';
+  const cachedEventKey = `${redisPrefix}-s3cache-${eventName}`;
+  const cachedEvent = await redis.get(cachedEventKey);
+  if (cachedEvent) {
+    return JSON.parse(cachedEvent) as types.Event<any>;
+  }
   const request: S3.GetObjectRequest = {
-    Bucket: bucket,
-    Key: name,
+    Bucket: getS3Config().bucket,
+    Key: `${getS3Config().path}/${eventName}`,
   };
 
   try {
-    const retVal = await s3.getObject(request).promise();
-    const data = retVal.Body.toString('utf-8');
-    log.info('Got file:', { name });
-    return JSON.parse(data as any);
+    const retVal = await getS3Object().getObject(request).promise();
+    const data = (retVal.Body || '').toString('utf-8');
+    log('S3', 'Got file:', { eventName });
+    redis.set(cachedEventKey, data);
+    return JSON.parse(data) as types.Event<any>;
   } catch (e) {
-    log.info('Failed to get the file:', { name, e });
+    log('S3', 'Failed to get the file:', { eventName, e });
     throw e;
   }
 };
 
-/**
- * Returns the file list on a folder.
- * @param {string}  folder - The folder name.
- * @param {string}  continuationToken - The continuation token.
- * @return {Promise<any>} Promise that returns the folder files list.
- */
-const listFiles = async (folder: string, continuationToken: string = null) => {
-  try {
-    let result = [];
-    const bucket = config.getConfiguration().s3Bucket;
-    const request = {
-      Bucket: bucket,
-      Prefix: `${folder}/`,
-      ContinuationToken: continuationToken,
-    };
+const getNextEventRecordAfter = async (currentRecordName: types.EventRecordName): Promise<types.EventRecord | null> => {
+  const { bucket } = getS3Config();
+  if (!bucket) throw new Error('S3 Bucket not defined');
+  log('S3', `Listing records starting from "${currentRecordName}"`);
+  const folder = `${getS3Config().path}/`;
+  const request: S3.Types.ListObjectsV2Request = {
+    Bucket: bucket,
+    Delimiter: '/',
+    Prefix: folder,
+    MaxKeys: 1,
+    StartAfter: `${folder}${currentRecordName}`,
+  };
+  const retVal = await getS3Object().listObjectsV2(request).promise();
+  const contents = retVal?.Contents?.[0];
+  if (!contents || !contents.Key) return null;
+  const fileName: types.EventRecordName = contents.Key.replace(`${folder}`, '');
 
-    log.info(`Getting files from ${folder}, ${continuationToken}`, bucket);
+  if (fileName.startsWith('.') || !fileName.endsWith('.json')) return getNextEventRecordAfter(fileName);
 
-    const retVal = await s3.listObjectsV2(request).promise();
-    if (retVal.Contents?.length > 0) {
-      const files = retVal.Contents.map((file) => {
-        return file.Key.replace(`${folder}/`, '');
-      });
-      result = result.concat(files);
+  return {
+    name: fileName,
+    event: await getEvent(fileName),
+  };
+};
+const getFirstEventRecord = async (): Promise<types.EventRecord | null> => {
+  const { bucket } = getS3Config();
+  if (!bucket) throw new Error('S3 Bucket not defined');
+  log('S3', `Getting first record.`);
+  const folder = `${getS3Config().path}/`;
+  const request: S3.Types.ListObjectsV2Request = {
+    Bucket: bucket,
+    Delimiter: '/',
+    Prefix: folder,
+    MaxKeys: 1,
+  };
+  const retVal = await getS3Object().listObjectsV2(request).promise();
+  const contents = retVal?.Contents?.[0];
+  if (!contents || !contents.Key) return null;
+  const fileName: types.EventRecordName = contents.Key.replace(`${folder}`, '');
+
+  if (fileName.startsWith('.') || !fileName.endsWith('.json')) return getNextEventRecordAfter(fileName);
+
+  return {
+    name: fileName,
+    event: await getEvent(fileName),
+  };
+};
+
+const flushEvents = async (): Promise<void> => {
+  const { bucket, path } = getS3Config();
+  if (!bucket) throw new Error('S3 Bucket not defined');
+  let record = await getFirstEventRecord();
+  while (record !== null) {
+    try {
+      const filename = record?.name;
+      if (!filename) continue; // eslint-disable-line no-continue
+      const request: S3.Types.DeleteObjectRequest = {
+        Bucket: bucket,
+        Key: `${path}/${filename}`,
+      };
+      await getS3Object().deleteObject(request).promise();
+      record = await getNextEventRecordAfter(filename);
+    } catch (error) {
+      throw new Error(`Error deleting file ${record?.name}`);
     }
-    if (retVal?.IsTruncated) {
-      const recursiveFilesResponse = await listFiles(folder, retVal.NextContinuationToken);
-      if (recursiveFilesResponse?.length > 0) {
-        result = result.concat(recursiveFilesResponse);
-      }
-    }
-    return result;
-  } catch (e) {
-    log.error(`Failed to get the folder content: ${folder}`, { e });
-    throw e;
   }
 };
 
-export default { saveJsonFile, getJsonFile, listFiles };
+const stop = (): void => {
+  clearInterval(timer);
+};
+
+export default {
+  saveEvent,
+  getEvent,
+  getFirstEventRecord,
+  getNextEventRecordAfter,
+  flushEvents,
+  stop,
+};

@@ -1,92 +1,152 @@
-import './types';
-import evtEmitter = require('events');
-import ioredis = require('ioredis');
+import evtEmitter from 'events';
+import IORedis from 'ioredis';
 import * as util from 'util';
-import getSecretValue from './getSecretValue';
-import logger from './logger';
 import config from './config';
+import log from './log';
 
 evtEmitter.EventEmitter.defaultMaxListeners = 40;
 
-const log = logger('Lib Redis');
-const promisify = util.promisify;
+const { promisify } = util;
 
-let client: ioredis;
+let client: IORedis.Redis | IORedis.Cluster;
+let subscriptionClient: IORedis.Redis | IORedis.Cluster;
 
-const redisConnect = (host: string, password: string, port = 6379) => {
-  return new Promise((resolve) => {
-    const config: any = {
-      host,
-      port: 6379,
+const withPrefix = (suffix: string): string => {
+  const { redis: redisConfig } = config.get().streams;
+  if (!redisConfig) {
+    throw new Error('Redis not configured.');
+  }
+  return `${redisConfig.prefix}-${suffix}`;
+};
+
+const returnClient = (): IORedis.Redis | IORedis.Cluster => {
+  const { redis: redisConfig } = config.get().streams;
+  const redisOptions: Record<string, any> = {};
+  if (!redisConfig) {
+    throw new Error('Redis not configured.');
+  }
+
+  if (redisConfig.password) {
+    redisOptions.password = redisConfig.password;
+  }
+  if (redisConfig.tls) {
+    redisOptions.tls = {
+      checkServerIdentity: () =>
+        // skip certificate hostname validation
+        undefined,
     };
-    if (password) {
-      config.password = password;
-      config.tls = {
-        checkServerIdentity: () => {
-          // skip certificate hostname validation
-          return undefined;
-        },
-      };
-    }
-    client = new ioredis(config);
+  }
 
-    client.on('error', (err: any) => {
-      log.error('REDIS CONNECT error ', err);
-      log.error('node error', err.lastNodeError);
-    });
+  if (!redisConfig.clusterNodes) {
+    redisOptions.host = redisConfig.host;
+    redisOptions.port = redisConfig.port || 6379;
+  }
 
-    client.on('connect', () => {
-      log.info('Redis Connected');
-      resolve();
-    });
+  return redisConfig.clusterNodes
+    ? new IORedis.Cluster(redisConfig.clusterNodes, { redisOptions })
+    : new IORedis(redisOptions);
+};
 
-    client.on('reconnecting', () => {
-      log.warn('Redis Reconnecting');
-    });
+const attachListeners = async (outClient: IORedis.Redis | IORedis.Cluster) => {
+  await new Promise((resolve) => {
+    const listener = async () => {
+      log('Lib Redis', 'Redis Connected');
+      resolve(outClient);
+    };
+    outClient.on('connect', listener);
+  });
+  outClient.on('error', (err: any) => {
+    console.error('Lib Redis', 'REDIS CONNECT error ', err, err.lastNodeError);
+  });
 
-    client.on('warning', () => {
-      log.warn('Redis Reconnecting');
-    });
+  outClient.on('reconnecting', () => {
+    console.warn('Lib Redis', 'Redis Reconnecting');
+  });
+
+  outClient.on('warning', () => {
+    console.warn('Lib Redis', 'Redis Reconnecting');
   });
 };
 
-const redisClient = (func: string) => {
-  return async (...args: any): Promise<any> => {
+const redisConnect = async () => {
+  client = returnClient();
+  await attachListeners(client);
+};
+
+const subscriptionConnect = async (callback: (message: string) => Promise<void>): Promise<void> => {
+  subscriptionClient = returnClient();
+  await attachListeners(subscriptionClient);
+  const subscribe = async (): Promise<void> =>
+    new Promise((res, rej) => {
+      subscriptionClient.subscribe(withPrefix('channel'), (err) => {
+        if (err) {
+          console.error('Failed to subscribe: %s', err.message);
+          rej(err);
+          return;
+        }
+        subscriptionClient.on('message', (subChannel, message) => {
+          log('Lib Redis', `Received '${message}' from ${subChannel}`);
+          if (subChannel === withPrefix('channel')) {
+            callback(message);
+          }
+        });
+        res();
+      });
+    });
+  await subscribe();
+};
+
+const redisClient =
+  (func: string) =>
+  async (...args: Array<any>): Promise<any> => {
     if (!client) {
-      log.info('Logging into Redis');
-      const redisConfig = config.getConfiguration().redisConfig;
-      log.info('Redis Auth Starting');
+      log('Lib Redis', 'Redis Auth Starting');
       try {
-        await redisConnect(redisConfig.host, redisConfig.password, redisConfig.port);
-        log.info('Redis Auth Complete');
+        await redisConnect();
       } catch (e) {
-        log.error('Redis Auth failed:', e);
+        console.error('Lib Redis', 'Redis Auth failed:', e);
         throw e;
       }
-      log.info('Calling:', { func, items: [...args] });
+      log('Lib Redis', 'Calling:', { func, items: [...args] });
       const call = promisify(client[func]).bind(client);
       const result = await call.apply(client, args);
-      log.info('Retrieved:', { result });
-      return result;
-    } else {
-      if (func != 'xreadgroup') {
-        log.info('Already Loaded, Calling:', { func, items: [...args] });
-      }
-      const result = await promisify(client[func]).bind(client)(...args);
-      if (result) {
-        log.info('Retrieved:', { result });
-      }
+      log('Lib Redis', 'Retrieved:', { result });
       return result;
     }
+    if (func !== 'xreadgroup') {
+      log('Lib Redis', 'Already Loaded, Calling:', { func, items: [...args] });
+    }
+    type CallBackType = (...a: any) => any;
+    const redisFunc = (client as any)[func] as CallBackType;
+    const result = await promisify(redisFunc)
+      .bind(client)
+      .apply(client, args as []);
+    if (result) {
+      log('Lib Redis', 'Retrieved:', { result });
+    }
+    return result;
   };
+
+const stop = (): Promise<any[]> => {
+  const promises = [];
+  if (client) {
+    promises.push(async () => client.quit());
+  }
+  if (subscriptionClient) {
+    promises.push(async () => subscriptionClient.quit());
+  }
+  return Promise.all(promises);
 };
 
 export default {
+  flushall: redisClient('flushall'),
+  exists: redisClient('exists'),
   del: redisClient('del'),
   get: redisClient('get'),
   quit: redisClient('quit'),
   set: redisClient('set'),
   xadd: redisClient('xadd'),
+  xinfo: redisClient('xinfo'),
   xlen: redisClient('xlen'),
   xread: redisClient('xread'),
   xgroup: redisClient('xgroup'),
@@ -94,9 +154,12 @@ export default {
   xack: redisClient('xack'),
   xclaim: redisClient('xclaim'),
   xpending: redisClient('xpending'),
-  xinfo: redisClient('xinfo'),
   xrange: redisClient('xrange'),
   xrevrange: redisClient('xrevrange'),
   eval: redisClient('eval'),
   incr: redisClient('incr'),
+  publish: redisClient('publish'),
+  subscribe: subscriptionConnect,
+  withPrefix,
+  stop,
 };

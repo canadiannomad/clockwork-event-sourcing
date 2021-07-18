@@ -1,13 +1,12 @@
-import { ClockWorkOptions } from './types';
+import { Options } from '../types';
 
-let queueOptions: ClockWorkOptions;
+let queueOptions: Options;
 
-const getConfiguration = (): ClockWorkOptions => {
-  return queueOptions;
-};
+const get = (): Options => queueOptions;
 
-const setConfiguration = (options: ClockWorkOptions): void => {
+const set = (options: Options): void => {
   queueOptions = options;
+  if (!queueOptions.logger && queueOptions.logger !== false) queueOptions.logger = console.log;
 };
 
-export default { getConfiguration, setConfiguration };
+export default { get, set };

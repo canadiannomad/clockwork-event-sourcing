@@ -9,7 +9,7 @@
 -->
 
 [![Contributors][contributors-shield]][contributors-url]
-[![License: LGPL v3][license-shield]][license-url]
+[![License: MIT][license-shield]][license-url]
 
 <!-- PROJECT LOGO -->
 
@@ -48,43 +48,22 @@ To install Clockwork, follow these simple example steps.
 
 ```sh
 $ cd your_project
-$ npm install --save clockwork-event-sourcing
-$ npm build
+$ yarn install --save clockwork-event-sourcing
+$ yarn build
 ```
 
-Because Clockwork uses ES6 syntax, using ```ts-node``` is not supported at this time.
-
-### npm
-
-Several scripts are provided in the ./bin directory.
+### Build
 
 ```sh
-> npm run-script build
+> yarn build
 ```
 This will create .js files for all .ts files found within the project folder. All new files will be created ```./built```
 
-```sh
-> npm run-script free
-```
-Frees current memory used by clockwork.
+
+### Test
 
 ```sh
-> npm run-script lint
-```
-Turns on trace warnings and frees current memory.
-
-```sh
-> npm run-script pack
-```
-Creates a webpack config file.
-
-```sh
-> npm run-script start
-```
-Starts the hello world example and embedded webserver.
-
-```sh
-> npm run-script test
+docker-compose build clockwork && docker-compose run --rm clockwork
 ```
 Flushes Redis and runs built/example/test.js
 
@@ -128,6 +107,6 @@ Distributed under the LGPL 3.0 License. See `LICENSE` for more information.
 
 [contributors-url]: https://github.com/canadiannomad/clockwork-event-sourcing/blob/master/AUTHORS.md
 
-[license-shield]: https://img.shields.io/badge/LICENSE-LGPL--3.0-blue?style=for-the-badge
+[license-shield]: https://img.shields.io/badge/license-MIT-green?style=for-the-badge
 
 [license-url]: https://github.com/canadiannomad/clockwork-event-sourcing/blob/master/LICENSE

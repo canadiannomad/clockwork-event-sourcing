@@ -2,27 +2,27 @@
   "compilerOptions": {
     "allowSyntheticDefaultImports": true,
     "experimentalDecorators": true,
-    "incremental": true,
+    "esModuleInterop": true,
+    "incremental": false,
     "outDir": "./built",
     "allowJs": true,
-    "lib": ["es2017"],
+    "lib": ["es2020", "dom"],
     "module": "commonjs",
     "pretty": true,
     "sourceMap": true,
     "inlineSourceMap": false,
     "inlineSources": false,
-    "noImplicitAny": false,
-    "strictNullChecks": false,
-    "strictFunctionTypes": true,
-    "strictBindCallApply": true,
-    "strictPropertyInitialization": false,
+    "strict": true,
     "noImplicitThis": true,
-    "target": "es2019",
-    "types": ["node"]
+    "forceConsistentCasingInFileNames": true,
+    "target": "es2020",
+    "types": ["node"],
+    "declaration": true,
+    "declarationMap": true,
+    "noEmitOnError": true
   },
   "include": [
-    "./example/init.ts",
-    "./example/test.ts",
     "./src/index.ts"
-  ]
+  ],
+  "exclude": ["built"]
 }

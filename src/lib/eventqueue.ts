@@ -1,200 +1,204 @@
-import { EventEmitter } from 'events';
 import { hostname } from 'os';
-import { ClockWorkOptions, Event } from './types';
-import redis from './redis';
-import logger from './logger';
-import config from './config';
-import utils from './utils';
-import storage from './storage';
 
-const clockwork = (options: ClockWorkOptions) => {
-  const hn = hostname();
-  const log = logger('Lib Event Queue');
-  const queues = {};
-  let allowedEvents = {};
+import log from './log';
+import * as types from '../types';
+import { config, redis, s3, utils } from '.';
 
-  config.setConfiguration(options);
+const hn = hostname();
 
-  /**
-   * This function gets a list of events and return the allowed functions
-   * @param {any}  events - The events array.
-   * @return {any} The transformed object
-   */
-  const getAllowedEvents = (events) => {
-    let eventList = {};
-    for (const eventName in events) {
-      if (events.hasOwnProperty(eventName)) {
-        log.info(`Adding Event ${eventName}`);
-        log.info(`Property names`, Object.keys(events[eventName]).toString());
-        Object.keys(events[eventName]).forEach((fileName) => {
-          if (events[eventName][fileName] && events[eventName][fileName].allowedFunctions) {
-            const funcs = events[eventName][fileName].allowedFunctions();
-            const funcNames = Object.keys(funcs);
-            log.info(`Adding Functions ${eventName}`, funcNames);
-            if (funcNames) {
-              eventList = Object.assign(eventList, funcs);
-            }
-          }
-        });
+const getPayloadsTypes = (): Record<string, string[]> => {
+  const conf = config.get();
+  const reverseListenFor: Record<string, string[]> = {};
+
+  const eventNames = Object.keys(conf.events);
+  for (const eventName of eventNames) {
+    if (conf.events[eventName].listenFor) {
+      for (const listenFor of conf.events[eventName].listenFor) {
+        if (!reverseListenFor[listenFor]) reverseListenFor[listenFor] = [];
+        reverseListenFor[listenFor].push(eventName);
       }
     }
-    log.info('Allowed Events:', Object.keys(eventList).toString());
-    return eventList;
-  };
-
-  /**
-   * This function initializes the event queue storage.
-   * Gets events from S3 and cache them in Redis stream.
-   * @param {any}  events - The events array.
-   */
-  const initializeStorage = async (stream): Promise<void> => {
-    await storage.getEvents(stream);
-  };
-
-  /**
-   * This function initializes the event queues.
-   * Each second will be reading events from the stream group if any.
-   * @param {any}  events - The events array.
-   */
-  const initializeQueues = async (evts): Promise<void> => {
-    allowedEvents = getAllowedEvents(evts);
-    const allowedEventsNames = Object.keys(allowedEvents);
-    for (let i = 0; i < allowedEventsNames.length; i += 1) {
-      const funcName = allowedEventsNames[i];
-      const evtListeners: EventEmitter[] = [];
-
-      if (allowedEvents[funcName].listenFor) {
-        log.info('Allowed Events ListenFor', { listenFor: allowedEvents[funcName].listenFor });
-        for (let j = 0; j < allowedEvents[funcName].listenFor.length; j += 1) {
-          try {
-            log.info(`Listening for ${allowedEvents[funcName].listenFor[j]} to call ${funcName}`);
-            await redis.xgroup(
-              'CREATE',
-              `${options.redisConfig.prefix}-stream-${allowedEvents[funcName].listenFor[j]}`,
-              `${options.redisConfig.prefix}-cg-${funcName}`,
-              '$',
-              'MKSTREAM',
-            );
-          } catch (e) {
-            // log.info(`Failed add ${allowedEvents[funcName].listenFor[j]}`, e);
-            // Do nothing.  Group already exists.
-          }
-          await initializeStorage(`${options.redisConfig.prefix}-stream-${allowedEvents[funcName].listenFor[j]}`);
-        }
-        for (let j = 0; j < allowedEvents[funcName].listenFor.length; j += 1) {
-          const evtListener = new EventEmitter();
-          setInterval(async () => {
-            let response = [];
-            const streamName = `${options.redisConfig.prefix}-stream-${allowedEvents[funcName].listenFor[j]}`;
-            try {
-              response = await redis.xreadgroup(
-                'GROUP',
-                `${options.redisConfig.prefix}-cg-${funcName}`,
-                `${hn}-${funcName}-${allowedEvents[funcName].listenFor[j]}`,
-                //'BLOCK',
-                //'0',
-                'COUNT',
-                '1',
-                'STREAMS',
-                streamName,
-                '>',
-              );
-            } catch (e) {
-              log.error('XReadGroup Error', e);
-            }
-            if (response) {
-              for (let entry = 0; entry < response.length; entry += 1) {
-                utils.kvArrayToObject(response[entry], (arg: Array<Array<any>>[]): Record<string, Array<any>>[] => {
-                  const newArray: Record<string, Array<any>>[] = [];
-                  for (let evtPos = 0; evtPos < arg.length; evtPos += 1) {
-                    newArray.push(
-                      utils.kvArrayToObject(
-                        arg[evtPos],
-                        (arg: Array<string>, key: string): Record<string, any> => {
-                          const evtObj = utils.kvArrayToObject(arg, (a) => {
-                            return JSON.parse(a);
-                          });
-                          log.info('Got Event', { key, evtObj });
-                          evtListener.emit('process', key, evtObj);
-                          return evtObj;
-                        },
-                      ),
-                    );
-                  }
-                  return newArray;
-                });
-              }
-            }
-          }, 1000);
-          evtListener.on('process', async (evtId: string, evt: Event<any>) => {
-            try {
-              log.info('Processing Queue');
-              await processEvent(funcName, evt);
-              await redis.xack(
-                `${options.redisConfig.prefix}-stream-${allowedEvents[funcName].listenFor[j]}`,
-                `${options.redisConfig.prefix}-cg-${funcName}`,
-                evtId,
-              );
-            } catch (e) {
-              // Do nothing
-              log.error('Error processing Event', e);
-            }
-          });
-          evtListeners.push(evtListener);
-        }
-      }
-      queues[funcName] = { listeners: evtListeners };
-    }
-  };
-
-  /**
-   * This function sends event data to the events queue.
-   * @param {string}  outputPayloadType - The output payload type.
-   * @param {Event<any>}  event - The event.
-   * @return {Promise<any>} A promise.
-   */
-  const send = async (outputPayloadType: string, event: Event<any>): Promise<any> => {
-    return await storage.addEvent(`${options.redisConfig.prefix}-stream-${outputPayloadType}`, event);
-  };
-
-  /**
-   * This function process an incoming event.
-   * Will increase the event hops each time the event is processed.
-   * @param {string}  funcName - The function name.
-   * @param {Event<any>}  evt - The incoming event.
-   */
-  const processEvent = async (funcName: string, evt: Event<any>) => {
-    try {
-      log.info(`Received message on queue '${funcName}'`);
-      evt.hops += 1;
-
-      var result = await allowedEvents[funcName].handler(evt);
-      
-      if (result != null && allowedEvents[funcName].outputPayloadType) {
-        if (!evt.stored) {
-          log.info('Storing Event', { evt });
-          evt.stored = true;
-          await send(allowedEvents[funcName].outputPayloadType, evt);
-        }
-        if (allowedEvents[funcName].stateChange) {
-          log.info('Update State', { funcName, evt });
-          await allowedEvents[funcName].stateChange(evt);
-        }
-
-      }
-    } catch (e) {
-      log.error('Error in process', e);
-      if (globalThis.testMode) {
-        process.exit(1);
-      }
-    }
-  };
-
-  const clockworkObj = {
-    initializeQueues,
-    send,
-  };
-  return clockworkObj;
+  }
+  return reverseListenFor;
 };
 
-export default clockwork;
+/**
+ * This function initializes the event queues.
+ */
+const initializeQueues = async (): Promise<void> => {
+  const conf = config.get();
+  const redisPrefix = conf.streams?.redis?.prefix || 'cwesf';
+
+  const reverseListenFor = getPayloadsTypes();
+
+  const payloadTypes: string[] = Object.keys(reverseListenFor);
+  for (const payloadType of payloadTypes) {
+    for (const eventName of reverseListenFor[payloadType]) {
+      try {
+        log('Lib Event Queue', `Listening for ${payloadType} to call ${eventName}`);
+
+        await redis.xgroup(
+          'CREATE',
+          `${redisPrefix}-stream-${payloadType}`,
+          `${redisPrefix}-cg-${eventName}`,
+          '$',
+          'MKSTREAM',
+        );
+      } catch (e) {
+        // log('Lib Event Queue', `Failed add ${listenFor}`, e);
+        // Do nothing.  Group already exists.
+      }
+    }
+  }
+};
+
+/**
+ * This function publishes an event to the queue
+ */
+const send = async (event: types.Event<any>): Promise<void> => {
+  const conf = config.get();
+  const redisConf = conf.streams.redis;
+  if (!redisConf) throw new Error('Redis not configured.');
+
+  const stream = `${redisConf.prefix}-stream-${event.payloadType}`;
+  log('Lib Storage', `Adding event to redis ${stream}`);
+  const eventId = await s3.saveEvent(event);
+  const kvObj: string[] = utils.objectToKVArray(event, JSON.stringify);
+  await redis.xadd(stream, eventId, ...kvObj);
+  const pubMessage: types.RedisMessage = {
+    command: 'NewEvent',
+    parameters: [event.payloadType],
+  };
+  redis.publish(`${redisConf.prefix}-channel`, JSON.stringify(pubMessage));
+};
+
+/**
+ * This function calls `handleStateChange` for every event after `getCurrentEventRecordName()`
+ */
+const syncState = async (): Promise<void> => {
+  const conf = config.get();
+  const reverseListenFor = getPayloadsTypes();
+
+  let currentState: string = await conf.state.getCurrentEventRecordName();
+  let nextItem: types.EventRecord | null = currentState
+    ? await s3.getNextEventRecordAfter(currentState)
+    : await s3.getFirstEventRecord();
+  if (!nextItem) return;
+  do {
+    for (const runEventName of reverseListenFor[nextItem.event.payloadType]) {
+      if (await conf.events[runEventName].filterEvent(nextItem.event)) {
+        await conf.events[runEventName].handleStateChange(nextItem.event);
+      }
+    }
+    await conf.state.setCurrentEventRecordName(nextItem.name);
+    currentState = await conf.state.getCurrentEventRecordName();
+    nextItem = await s3.getNextEventRecordAfter(currentState);
+  } while (nextItem);
+};
+
+/**
+ * This function makes sure the state is up to date then processes a new event.
+ */
+const processEvent = async (funcName: string, eventType: string, eventId: string, event: types.Event<any>) => {
+  const conf = config.get();
+  const redisConf = conf.streams.redis;
+  if (!redisConf) throw new Error('Redis not configured.');
+  try {
+    if (await conf.events[funcName].filterEvent(event)) {
+      await syncState();
+      const newPayloadReturn = await conf.events[funcName].handleSideEffects(event);
+      if (newPayloadReturn) {
+        const newEvent = { ...event };
+        newEvent.payloadType = newPayloadReturn.type;
+        newEvent.payloadVersion = newPayloadReturn.version;
+        newEvent.date = new Date().toJSON();
+        newEvent.payload = newPayloadReturn.payload;
+        log('Lib Event Queue', `Triggering new event from ${funcName}`, newEvent);
+        send(newEvent);
+      }
+    } else {
+      const pubMessage: types.RedisMessage = {
+        command: 'FilteredEvent',
+        parameters: [funcName, eventType, eventId],
+      };
+      redis.publish(`${redisConf.prefix}-channel`, JSON.stringify(pubMessage));
+    }
+    await redis.xack(`${redisConf.prefix}-stream-${eventType}`, `${redisConf.prefix}-cg-${funcName}`, eventId);
+  } catch (_e) {
+    const pubMessage: types.RedisMessage = {
+      command: 'FailedEvent',
+      parameters: [funcName, eventType, eventId],
+    };
+    redis.publish(`${redisConf.prefix}-channel`, JSON.stringify(pubMessage));
+  }
+};
+
+const processResponse = (funcName: string, eventType: string, response: Array<any>) => {
+  for (let entry = 0; entry < response.length; entry += 1) {
+    utils.kvArrayToObject(response[entry], (arg: Array<Array<any>>[]): Record<string, Array<any>>[] => {
+      const newArray: Record<string, Array<any>>[] = [];
+      for (let evtPos = 0; evtPos < arg.length; evtPos += 1) {
+        newArray.push(
+          utils.kvArrayToObject(arg[evtPos], (aarg: Array<string>, key: string): Record<string, any> => {
+            const evtObj = utils.kvArrayToObject(aarg, (a) => JSON.parse(a)) as types.Event<any>;
+            log('Lib Event Queue', 'Got Event', { key, evtObj });
+            processEvent(funcName, eventType, key, evtObj);
+            return evtObj;
+          }),
+        );
+      }
+      return newArray;
+    });
+  }
+};
+
+const subscribeToQueues = async (): Promise<void> => {
+  const conf = config.get();
+  const redisConf = conf.streams.redis;
+  if (!redisConf) throw new Error('Redis not configured.');
+
+  const reverseListenFor = getPayloadsTypes();
+
+  await redis.subscribe(async (message: string) => {
+    const msg = JSON.parse(message) as types.RedisMessage;
+    log('Event Queue Received Message:', message);
+    if (msg.command === 'NewEvent') {
+      const eventType = msg.parameters[0];
+      for (const funcName of reverseListenFor[eventType]) {
+        const streamName = `${redisConf.prefix}-stream-${eventType}`;
+        const response = await redis.xreadgroup(
+          'GROUP',
+          `${redisConf.prefix}-cg-${funcName}`,
+          `${hn}-${funcName}-${eventType}`,
+          // 'BLOCK',
+          // '0',
+          'COUNT',
+          '1',
+          'STREAMS',
+          streamName,
+          '>',
+        );
+        if (response) processResponse(funcName, eventType, response);
+      }
+    }
+    if (msg.command === 'FilteredEvent' || msg.command === 'FailedEvent') {
+      const [funcName, eventType, eventId] = msg.parameters;
+      const streamName = `${redisConf.prefix}-stream-${eventType}`;
+      const response = await redis.xclaim(
+        streamName,
+        `${redisConf.prefix}-cg-${funcName}`,
+        `${hn}-${funcName}-${eventType}`,
+        '0',
+        eventId,
+      );
+      if (response) processResponse(funcName, eventType, response);
+    }
+  });
+};
+
+export default {
+  initializeQueues,
+  syncState,
+  subscribeToQueues,
+  send,
+};
