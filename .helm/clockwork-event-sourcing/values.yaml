@@ -12,6 +12,10 @@ image:
   # Overrides the image tag whose default is the chart appVersion.
   tag: "" 
 
+service:
+  internalPort: 3000
+  type: ClusterIP
+
 nameOverride: "test"
 imagePullSecrets: []
 
