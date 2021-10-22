@@ -7,7 +7,7 @@ spec:
   ports:
   - port: {{ .Values.service.internalPort }}
     protocol: TCP
-    targetPort: {{ .Values.service.externalPort }}
+    targetPort: app
     name: app
   selector: {{ include "labels.deployment" . | nindent 4 }}
   type: {{ .Values.service.type }}

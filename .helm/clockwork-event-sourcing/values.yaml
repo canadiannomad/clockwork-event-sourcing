@@ -10,7 +10,7 @@ image:
   repository: "" #TODO: Add repository
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: "" 
+  tag: ""
 
 service:
   internalPort: 3000
