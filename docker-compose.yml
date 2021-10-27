@@ -9,7 +9,7 @@ services:
     entrypoint: >
       /bin/sh -c "
       mkdir -p /data/yourbucket;
-      /usr/bin/minio server /data;
+      /opt/bin/minio server /data;
       "
     ports:
       - "9000:9000"

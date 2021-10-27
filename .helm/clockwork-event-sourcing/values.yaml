@@ -1,0 +1,21 @@
+# Default values for clockwork-event-sourcing.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+commitHash: ""
+
+replicaCount: 1
+
+image:
+  repository: "" #TODO: Add repository
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: ""
+
+service:
+  internalPort: 3000
+  type: ClusterIP
+
+nameOverride: "test"
+imagePullSecrets: []
+
